@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NETPOINT - soluciones tecnologicas</title>
+    <meta name="description" content="Sistema profesional de presupuestación NETPOINT." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="css/styles.css" />
+    <!-- html2pdf library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+</head>
+
+<body>
+
+    <!-- ===================== LOGIN SCREEN ===================== -->
+    <div id="loginScreen" class="screen active">
+        <div class="login-bg">
+            <div class="login-blob blob1"></div>
+            <div class="login-blob blob2"></div>
+            <div class="login-blob blob3"></div>
+        </div>
+        <div class="login-container">
+            <div class="login-card">
+                <div class="login-logo">
+                    <img src="Logo.png" alt="NETPOINT" class="main-logo-img">
+                </div>
+                <form id="loginForm" class="login-form" onsubmit="handleLogin(event)">
+                    <div class="form-group">
+                        <label for="loginUser">Usuario</label>
+                        <div class="input-wrapper">
+                            <span class="input-icon">👤</span>
+                            <input type="text" id="loginUser" placeholder="Ingrese su usuario" required
+                                autocomplete="username" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="loginPass">Contraseña</label>
+                        <div class="input-wrapper">
+                            <span class="input-icon">🔒</span>
+                            <input type="password" id="loginPass" placeholder="Ingrese su contraseña" required
+                                autocomplete="current-password" />
+                            <button type="button" class="toggle-pass" onclick="togglePassword()"
+                                title="Mostrar/ocultar contraseña">👁️</button>
+                        </div>
+                    </div>
+                    <div id="loginError" class="login-error hidden">Usuario o contraseña incorrectos</div>
+                    <button type="submit" class="btn-login" id="btnLogin">
+                        <span class="btn-text">Ingresar</span>
+                        <span class="btn-loader hidden">⏳</span>
+                    </button>
+                </form>
+                <p class="login-hint">Usuario por defecto: <strong>admin</strong> / <strong>admin123</strong></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================== MAIN APP ===================== -->
+    <div id="appScreen" class="screen hidden">
+
+        <!-- TOP NAV -->
+        <header class="topbar">
+            <div class="topbar-left">
+                <button class="hamburger" id="hamburgerBtn" onclick="toggleSidebar()" aria-label="Menú">
+                    <span></span><span></span><span></span>
+                </button>
+                <div class="topbar-brand">
+                    <img src="logo.png" alt="Logo" class="topbar-logo-img">
+                    <span class="brand-name">NETPOINT</span>
+                </div>
+            </div>
+            <div class="topbar-center">
+                <div class="dollar-widget" id="dollarWidget" title="Dólar oficial en tiempo real">
+                    <span class="dollar-label">💵 Dólar BNA</span>
+                    <div class="dollar-rates">
+                        <span class="dollar-item">
+                            <span class="dollar-type">Oficial (BNA)</span>
+                            <span class="dollar-val" id="dolarOficial">—</span>
+                        </span>
+                    </div>
+                    <span class="dollar-update" id="dollarUpdate"></span>
+                </div>
+            </div>
+            <div class="topbar-right">
+                <div class="user-badge" id="userBadge">
+                    <div class="user-avatar" id="userAvatar">A</div>
+                    <span class="user-name" id="userNameDisplay">Admin</span>
+                </div>
+                <button class="btn-logout" onclick="handleLogout()" title="Cerrar sesión">⏻</button>
+            </div>
+        </header>
+
+        <!-- SIDEBAR -->
+        <aside class="sidebar" id="sidebar">
+            <nav class="sidebar-nav">
+                <button class="nav-item active" onclick="showSection('presupuestos')" id="nav-presupuestos">
+                    <span class="nav-icon">📋</span>
+                    <span class="nav-label">Presupuestos</span>
+                </button>
+                <button class="nav-item" onclick="showSection('productos')" id="nav-productos">
+                    <span class="nav-icon">📦</span>
+                    <span class="nav-label">Productos</span>
+                </button>
+                <button class="nav-item" onclick="showSection('clientes')" id="nav-clientes">
+                    <span class="nav-icon">👥</span>
+                    <span class="nav-label">Clientes</span>
+                </button>
+                <button class="nav-item" onclick="showSection('usuarios')" id="nav-usuarios">
+                    <span class="nav-icon">⚙️</span>
+                    <span class="nav-label">Usuarios</span>
+                </button>
+            </nav>
+            <div class="sidebar-footer">
+                <small>NETPOINT &copy; 2026</small>
+            </div>
+        </aside>
+
+        <!-- OVERLAY for mobile sidebar -->
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+        <!-- MAIN CONTENT -->
+        <main class="main-content" id="mainContent">
+
+            <!-- === PRESUPUESTOS SECTION === -->
+            <section class="section active" id="section-presupuestos">
+                <div class="section-header">
+                    <div>
+                        <h2 class="section-title">Presupuestos</h2>
+                        <p class="section-desc">Creá y gestioná tus presupuestos</p>
+                    </div>
+                    <button class="btn-primary" onclick="openNuevoPresupuesto()">+ Nuevo Presupuesto</button>
+                </div>
+
+                <!-- SEARCH + FILTER -->
+                <div class="toolbar">
+                    <div class="search-box">
+                        <span>🔍</span>
+                        <input type="text" id="searchPresupuestos" placeholder="Buscar presupuesto..."
+                            oninput="filterPresupuestos()" />
+                    </div>
+                    <select class="select-filter" id="filterEstado" onchange="filterPresupuestos()">
+                        <option value="">Todos los estados</option>
+                        <option value="borrador">Borrador</option>
+                        <option value="enviado">Enviado</option>
+                        <option value="aprobado">Aprobado</option>
+                        <option value="rechazado">Rechazado</option>
+                    </select>
+                </div>
+
+                <!-- LIST -->
+                <div class="card-grid" id="presupuestosList"></div>
+                <div class="empty-state hidden" id="emptyPresupuestos">
+                    <div class="empty-icon">📋</div>
+                    <p>No hay presupuestos todavía</p>
+                    <button class="btn-primary" onclick="openNuevoPresupuesto()">Crear el primero</button>
+                </div>
+            </section>
+
+            <!-- === PRODUCTOS SECTION === -->
+            <section class="section" id="section-productos">
+                <div class="section-header">
+                    <div>
+                        <h2 class="section-title">Productos</h2>
+                        <p class="section-desc">Catálogo de productos y precios</p>
+                    </div>
+                    <button class="btn-primary" onclick="openProductoModal()">+ Nuevo Producto</button>
+                </div>
+                <div class="toolbar">
+                    <div class="search-box">
+                        <span>🔍</span>
+                        <input type="text" id="searchProductos" placeholder="Buscar producto..."
+                            oninput="filterProductos()" />
+                    </div>
+                    <select class="select-filter" id="filterCategoria" onchange="filterProductos()">
+                        <option value="">Todas las categorías</option>
+                    </select>
+                </div>
+                <div class="table-wrapper">
+                    <table class="data-table" id="productosTable">
+                        <thead>
+                            <tr>
+                                <th>Código</th>
+                                <th>Nombre</th>
+                                <th>Categoría</th>
+                                <th>Precio (ARS)</th>
+                                <th>Precio (USD)</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="productosBody"></tbody>
+                    </table>
+                </div>
+                <div class="empty-state hidden" id="emptyProductos">
+                    <div class="empty-icon">📦</div>
+                    <p>No hay productos cargados</p>
+                    <button class="btn-primary" onclick="openProductoModal()">Agregar producto</button>
+                </div>
+            </section>
+
+            <!-- === CLIENTES SECTION === -->
+            <section class="section" id="section-clientes">
+                <div class="section-header">
+                    <div>
+                        <h2 class="section-title">Clientes</h2>
+                        <p class="section-desc">Base de datos de clientes</p>
+                    </div>
+                    <button class="btn-primary" onclick="openClienteModal()">+ Nuevo Cliente</button>
+                </div>
+                <div class="toolbar">
+                    <div class="search-box">
+                        <span>🔍</span>
+                        <input type="text" id="searchClientes" placeholder="Buscar cliente..."
+                            oninput="filterClientes()" />
+                    </div>
+                </div>
+                <div class="table-wrapper">
+                    <table class="data-table" id="clientesTable">
+                        <thead>
+                            <tr>
+                                <th>Nombre</th>
+                                <th>Email</th>
+                                <th>Teléfono</th>
+                                <th>Empresa</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="clientesBody"></tbody>
+                    </table>
+                </div>
+                <div class="empty-state hidden" id="emptyClientes">
+                    <div class="empty-icon">👥</div>
+                    <p>No hay clientes cargados</p>
+                    <button class="btn-primary" onclick="openClienteModal()">Agregar cliente</button>
+                </div>
+            </section>
+
+            <!-- === USUARIOS SECTION === -->
+            <section class="section" id="section-usuarios">
+                <div class="section-header">
+                    <div>
+                        <h2 class="section-title">Usuarios</h2>
+                        <p class="section-desc">Gestión de accesos y permisos</p>
+                    </div>
+                    <button class="btn-primary" onclick="openUsuarioModal()">+ Nuevo Usuario</button>
+                </div>
+                <div class="table-wrapper">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Usuario</th>
+                                <th>Nombre completo</th>
+                                <th>Rol</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usuariosBody"></tbody>
+                    </table>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- ===================== MODALS ===================== -->
+
+    <!-- MODAL: Nuevo/Editar Presupuesto -->
+    <div class="modal-overlay hidden" id="modalPresupuesto">
+        <div class="modal modal-xl">
+            <div class="modal-header">
+                <h3 id="modalPresupuestoTitle">Nuevo Presupuesto</h3>
+                <button class="modal-close" onclick="closeModal('modalPresupuesto')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-row">
+                    <div class="form-group flex-grow">
+                        <label>Cliente</label>
+                        <input type="text" id="presClienteBusqueda" class="form-control" list="clientesDatalist"
+                            placeholder="Escriba el nombre del cliente..." onchange="updatePresupuestoCliente()">
+                        <datalist id="clientesDatalist"></datalist>
+                    </div>
+                    <div class="form-group">
+                        <label>Número</label>
+                        <input type="text" id="presNumero" class="form-control" readonly />
+                    </div>
+                    <div class="form-group">
+                        <label>Fecha</label>
+                        <input type="date" id="presFecha" class="form-control" />
+                    </div>
+                    <div class="form-group">
+                        <label>Validez (días)</label>
+                        <input type="number" id="presValidez" class="form-control" value="15" min="1" />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Observaciones</label>
+                    <textarea id="presObservaciones" class="form-control" rows="2"
+                        placeholder="Observaciones opcionales..."></textarea>
+                </div>
+
+                <!-- Agregar productos -->
+                <div class="item-adder">
+                    <h4>Agregar ítem</h4>
+                    <div class="form-row">
+                        <div class="form-group flex-grow">
+                            <label>Producto</label>
+                            <select id="itemProducto" class="form-control" onchange="onItemProductoChange()">
+                                <option value="">— Seleccionar —</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Cantidad</label>
+                            <input type="number" id="itemCantidad" class="form-control" value="1" min="1" />
+                        </div>
+                        <div class="form-group">
+                            <label>Precio unit. (ARS)</label>
+                            <input type="number" id="itemPrecio" class="form-control" placeholder="0" step="0.01" />
+                        </div>
+                        <div class="form-group">
+                            <label>Desc. %</label>
+                            <input type="number" id="itemDesc" class="form-control" value="0" min="0" max="100" />
+                        </div>
+                        <div class="form-group align-end">
+                            <button class="btn-primary" onclick="addItemToPresupuesto()">+ Agregar</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Items table -->
+                <div class="table-wrapper">
+                    <table class="data-table" id="presItemsTable">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Producto</th>
+                                <th>Cant.</th>
+                                <th>Precio unit.</th>
+                                <th>Desc. %</th>
+                                <th>Subtotal ARS</th>
+                                <th>Subtotal USD</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="presItemsBody"></tbody>
+                    </table>
+                </div>
+
+                <!-- Totales -->
+                <div class="totales-box">
+                    <div class="totales-row">
+                        <span>Subtotal:</span>
+                        <span id="totalSubtotal">$ 0,00</span>
+                    </div>
+                    <div class="totales-row">
+                        <span>IVA (21%):</span>
+                        <div class="totales-iva">
+                            <input type="checkbox" id="aplicaIva" onchange="calcTotales()" />
+                            <span id="totalIVA">$ 0,00</span>
+                        </div>
+                    </div>
+                    <div class="totales-row total-final">
+                        <span>TOTAL ARS:</span>
+                        <span id="totalARS" class="total-value">$ 0,00</span>
+                    </div>
+                    <div class="totales-row total-usd">
+                        <span>TOTAL USD:</span>
+                        <span id="totalUSDOficial" class="total-value-usd">U$S 0,00</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <select id="presEstado" class="select-filter">
+                    <option value="borrador">Borrador</option>
+                    <option value="enviado">Enviado</option>
+                    <option value="aprobado">Aprobado</option>
+                    <option value="rechazado">Rechazado</option>
+                </select>
+                <button class="btn-secondary" onclick="closeModal('modalPresupuesto')">Cancelar</button>
+                <button class="btn-primary" onclick="savePresupuesto()">💾 Guardar</button>
+                <button class="btn-success" onclick="previewPresupuestoFromModal()">�️ Previsualizar / Imprimir</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Producto -->
+    <div class="modal-overlay hidden" id="modalProducto">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="modalProductoTitle">Nuevo Producto</h3>
+                <button class="modal-close" onclick="closeModal('modalProducto')">✕</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="prodId" />
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Código</label>
+                        <input type="text" id="prodCodigo" class="form-control" placeholder="Ej: PROD-001" />
+                    </div>
+                    <div class="form-group flex-grow">
+                        <label>Nombre del producto *</label>
+                        <input type="text" id="prodNombre" class="form-control" required
+                            placeholder="Nombre del producto" />
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Categoría</label>
+                        <input type="text" id="prodCategoria" class="form-control" list="categoriasDatalist"
+                            placeholder="Ej: Electrónica" />
+                        <datalist id="categoriasDatalist"></datalist>
+                    </div>
+                    <div class="form-group">
+                        <label>Unidad</label>
+                        <select id="prodUnidad" class="form-control">
+                            <option value="unidad">Unidad</option>
+                            <option value="metros">Metros</option>
+                            <option value="kg">Kilogramos</option>
+                            <option value="litros">Litros</option>
+                            <option value="horas">Horas</option>
+                            <option value="servicio">Servicio</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Precio (ARS) *</label>
+                        <input type="number" id="prodPrecioARS" class="form-control" min="0" step="0.01"
+                            placeholder="0.00" oninput="calcProdUSD()" />
+                    </div>
+                    <div class="form-group">
+                        <label>Precio (USD) — referencia</label>
+                        <input type="number" id="prodPrecioUSD" class="form-control" min="0" step="0.01"
+                            placeholder="auto" oninput="calcProdARS()" />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Descripción</label>
+                    <textarea id="prodDescripcion" class="form-control" rows="3"
+                        placeholder="Descripción opcional del producto..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeModal('modalProducto')">Cancelar</button>
+                <button class="btn-primary" onclick="saveProducto()">💾 Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Cliente -->
+    <div class="modal-overlay hidden" id="modalCliente">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="modalClienteTitle">Nuevo Cliente</h3>
+                <button class="modal-close" onclick="closeModal('modalCliente')">✕</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="cliId" />
+                <div class="form-row">
+                    <div class="form-group flex-grow">
+                        <label>Nombre / Razón social *</label>
+                        <input type="text" id="cliNombre" class="form-control" required
+                            placeholder="Nombre del cliente" />
+                    </div>
+                    <div class="form-group">
+                        <label>CUIT / DNI</label>
+                        <input type="text" id="cliCuit" class="form-control" placeholder="00-00000000-0" />
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" id="cliEmail" class="form-control" placeholder="ejemplo@email.com" />
+                    </div>
+                    <div class="form-group">
+                        <label>Teléfono</label>
+                        <input type="tel" id="cliTelefono" class="form-control" placeholder="+54 9 11 0000-0000" />
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group flex-grow">
+                        <label>Empresa</label>
+                        <input type="text" id="cliEmpresa" class="form-control" placeholder="Nombre de la empresa" />
+                    </div>
+                    <div class="form-group">
+                        <label>Condición IVA</label>
+                        <select id="cliIva" class="form-control">
+                            <option value="Consumidor Final">Consumidor Final</option>
+                            <option value="Responsable Inscripto">Responsable Inscripto</option>
+                            <option value="Monotributista">Monotributista</option>
+                            <option value="Exento">Exento</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Dirección</label>
+                    <input type="text" id="cliDireccion" class="form-control" placeholder="Dirección completa" />
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeModal('modalCliente')">Cancelar</button>
+                <button class="btn-primary" onclick="saveCliente()">💾 Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Usuario -->
+    <div class="modal-overlay hidden" id="modalUsuario">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="modalUsuarioTitle">Nuevo Usuario</h3>
+                <button class="modal-close" onclick="closeModal('modalUsuario')">✕</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="usuId" />
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Usuario *</label>
+                        <input type="text" id="usuUsername" class="form-control" placeholder="nombre_usuario" />
+                    </div>
+                    <div class="form-group flex-grow">
+                        <label>Nombre completo</label>
+                        <input type="text" id="usuNombre" class="form-control" placeholder="Nombre y apellido" />
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Contraseña <span id="passRequired">*</span></label>
+                        <input type="password" id="usuPassword" class="form-control" placeholder="Contraseña" />
+                    </div>
+                    <div class="form-group">
+                        <label>Confirmar contraseña</label>
+                        <input type="password" id="usuPasswordConf" class="form-control"
+                            placeholder="Repetir contraseña" />
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Rol</label>
+                        <select id="usuRol" class="form-control">
+                            <option value="admin">Administrador</option>
+                            <option value="vendedor">Vendedor</option>
+                            <option value="viewer">Solo lectura</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Estado</label>
+                        <select id="usuEstado" class="form-control">
+                            <option value="activo">Activo</option>
+                            <option value="inactivo">Inactivo</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeModal('modalUsuario')">Cancelar</button>
+                <button class="btn-primary" onclick="saveUsuario()">💾 Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Ver/Imprimir Presupuesto -->
+    <div class="modal-overlay hidden" id="modalPrint">
+        <div class="modal modal-xl">
+            <div class="modal-header no-print">
+                <h3>Vista previa del presupuesto</h3>
+                <button class="modal-close" onclick="closeModal('modalPrint')">✕</button>
+            </div>
+            <div class="modal-body" id="printContent"></div>
+            <div class="modal-footer no-print">
+                <button class="btn-secondary" onclick="closeModal('modalPrint')">Cerrar</button>
+                <button class="btn-primary" onclick="downloadPDF()">📥 Descargar PDF</button>
+                <button class="btn-success" onclick="window.print()">🖨️ Imprimir</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <script src="js/app.js"></script>
+</body>
+
+</html>
