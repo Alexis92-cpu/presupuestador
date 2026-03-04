@@ -50,16 +50,21 @@ function saveDB(db) {
 
 // Función para descargar datos de la nube al iniciar
 async function syncFromCloud() {
+  console.log("Iniciando sincronización con la nube...");
   try {
     const doc = await fs.collection(DB_COLLECTION).doc(DB_DOC).get();
     if (doc.exists) {
       const cloudData = doc.data();
       localStorage.setItem(DB_KEY, JSON.stringify(cloudData));
       console.log("Datos sincronizados desde la nube ✓");
+      showToast("Datos sincronizados ☁️", "success");
       return cloudData;
+    } else {
+      console.warn("No se encontró el documento en la nube. Usando local.");
     }
   } catch (err) {
     console.error("Error de sincronización inicial:", err);
+    showToast("Error al conectar con la nube", "error");
   }
   return getDB();
 }
