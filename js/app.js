@@ -8,6 +8,28 @@
 // =====================================================
 // STATE & STORAGE
 // =====================================================
+// =====================================================
+// FIREBASE CONFIG & INIT
+// =====================================================
+const firebaseConfig = {
+  apiKey: "AIzaSyDcb-TeEu34eY5DIzwCA2C9O-uG5VOrcw8",
+  authDomain: "netpoint-presupuestador.firebaseapp.com",
+  projectId: "netpoint-presupuestador",
+  storageBucket: "netpoint-presupuestador.firebasestorage.app",
+  messagingSenderId: "1048443433100",
+  appId: "1:1048443433100:web:620e4e41b1322a8846cba9",
+  measurementId: "G-4K9PYER9G6"
+};
+
+// Inicializar Firebase (vía el compat SDK que pusimos en el HTML)
+firebase.initializeApp(firebaseConfig);
+const fs = firebase.firestore();
+const DB_COLLECTION = 'netpoint_v1';
+const DB_DOC = 'main_db';
+
+// =====================================================
+// STATE & STORAGE
+// =====================================================
 const DB_KEY = 'netpoint_db';
 
 function getDB() {
@@ -17,8 +39,55 @@ function getDB() {
 }
 
 function saveDB(db) {
+  // Guardar localmente para velocidad
   localStorage.setItem(DB_KEY, JSON.stringify(db));
+
+  // Sincronizar con la nube (Firestore)
+  fs.collection(DB_COLLECTION).doc(DB_DOC).set(db).catch(err => {
+    console.error("Error al guardar en la nube:", err);
+  });
 }
+
+// Función para descargar datos de la nube al iniciar
+async function syncFromCloud() {
+  try {
+    const doc = await fs.collection(DB_COLLECTION).doc(DB_DOC).get();
+    if (doc.exists) {
+      const cloudData = doc.data();
+      localStorage.setItem(DB_KEY, JSON.stringify(cloudData));
+      console.log("Datos sincronizados desde la nube ✓");
+      return cloudData;
+    }
+  } catch (err) {
+    console.error("Error de sincronización inicial:", err);
+  }
+  return getDB();
+}
+
+// Escuchador en tiempo real: Si otro dispositivo cambia algo, este lo recibe
+fs.collection(DB_COLLECTION).doc(DB_DOC).onSnapshot(doc => {
+  if (doc.exists) {
+    const cloudData = doc.data();
+    const localData = localStorage.getItem(DB_KEY);
+
+    // Si los datos son diferentes a lo que tenemos localmente, actualizamos
+    if (JSON.stringify(cloudData) !== localData) {
+      localStorage.setItem(DB_KEY, JSON.stringify(cloudData));
+
+      // Si el usuario ya está dentro de la app, refrescamos la vista
+      if (currentUser) {
+        showToast("Datos actualizados desde otro dispositivo ☁️", "info");
+        // Refrescar la sección actual para ver los cambios
+        const currentSection = document.querySelector('.section.active')?.id.replace('section-', '') || 'presupuestos';
+        // Re-renderizar todo
+        renderPresupuestos();
+        renderProductos();
+        renderClientes();
+        renderUsuarios();
+      }
+    }
+  }
+});
 
 // Inicializa la base de datos con datos de ejemplo
 function initDB() {
@@ -1091,7 +1160,11 @@ document.head.appendChild(style);
 // =====================================================
 // INIT
 // =====================================================
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+  // 1. Intentar sincronizar desde la nube primero
+  await syncFromCloud();
+
+  // 2. Inicializar DB (creará datos de ejemplo si la nube estaba vacía)
   initDB();
 
   // Restaurar sesión si existe
@@ -1099,7 +1172,6 @@ document.addEventListener('DOMContentLoaded', () => {
   if (savedUser) {
     try {
       const user = JSON.parse(savedUser);
-      // Verificar que el usuario sigue existiendo y activo
       const db = getDB();
       const found = (db.usuarios || []).find(u => u.id === user.id && u.estado === 'activo');
       if (found) {
