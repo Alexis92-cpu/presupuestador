@@ -382,7 +382,10 @@ function filterPresupuestos() { renderPresupuestos(); }
 
 function calcPresupuestoTotal(p) {
   let sub = (p.items || []).reduce((acc, item) => {
-    const subtotal = item.cantidad * item.precioUnit * (1 - (item.descuento || 0) / 100);
+    // Subtotal base con descuento
+    const base = item.cantidad * item.precioUnit * (1 - (item.descuento || 0) / 100);
+    // Aplicar ganancia interna
+    const subtotal = base * (1 + (item.ganancia || 0) / 100);
     return acc + subtotal;
   }, 0);
   if (p.aplicaIva) sub = sub * 1.21;
@@ -471,6 +474,7 @@ function addItemToPresupuesto() {
   const cantidad = parseFloat(document.getElementById('itemCantidad').value) || 1;
   const precio = parseFloat(document.getElementById('itemPrecio').value) || 0;
   const descuento = parseFloat(document.getElementById('itemDesc').value) || 0;
+  const ganancia = parseFloat(document.getElementById('itemGanancia').value) || 0;
 
   if (!prodId) { showToast('Seleccioná un producto', 'error'); return; }
   if (precio <= 0) { showToast('Ingresá un precio válido', 'error'); return; }
@@ -483,7 +487,8 @@ function addItemToPresupuesto() {
     nombre: prod?.nombre || 'Producto',
     cantidad,
     precioUnit: precio,
-    descuento
+    descuento,
+    ganancia
   });
 
   // Reset fields
@@ -491,6 +496,7 @@ function addItemToPresupuesto() {
   document.getElementById('itemCantidad').value = 1;
   document.getElementById('itemPrecio').value = '';
   document.getElementById('itemDesc').value = 0;
+  document.getElementById('itemGanancia').value = 0;
 
   renderPresItems();
   calcTotales();
@@ -510,7 +516,8 @@ function renderPresItems() {
   }
   const oficial = dollarRates.oficial;
   tbody.innerHTML = currentPresupuestoItems.map((item, i) => {
-    const subtotalARS = item.cantidad * item.precioUnit * (1 - item.descuento / 100);
+    const baseARS = item.cantidad * item.precioUnit * (1 - item.descuento / 100);
+    const subtotalARS = baseARS * (1 + (item.ganancia || 0) / 100);
     const subtotalUSD = toUSD(subtotalARS, oficial);
     return `<tr>
       <td>${i + 1}</td>
@@ -518,6 +525,7 @@ function renderPresItems() {
       <td>${fmt(item.cantidad, 0)}</td>
       <td>${fmtARS(item.precioUnit)}</td>
       <td>${item.descuento > 0 ? `<span class="text-success">${item.descuento}%</span>` : '—'}</td>
+      <td class="text-warning">${item.ganancia > 0 ? `${item.ganancia}%` : '—'}</td>
       <td class="td-money">${fmtARS(subtotalARS)}</td>
       <td class="td-usd">${oficial > 0 ? fmtUSD(subtotalUSD) : '—'}</td>
       <td><button class="btn-icon danger" onclick="removeItemFromPresupuesto(${i})" title="Quitar">✕</button></td>
@@ -527,7 +535,8 @@ function renderPresItems() {
 
 function calcTotales() {
   const subtotal = currentPresupuestoItems.reduce((acc, item) => {
-    return acc + item.cantidad * item.precioUnit * (1 - item.descuento / 100);
+    const base = item.cantidad * item.precioUnit * (1 - item.descuento / 100);
+    return acc + (base * (1 + (item.ganancia || 0) / 100));
   }, 0);
 
   const aplicaIva = document.getElementById('aplicaIva')?.checked;
@@ -641,14 +650,18 @@ function previewPresupuesto(id) {
 
   let sub = 0;
   const rowsHTML = (p.items || []).map((item, i) => {
-    const st = item.cantidad * item.precioUnit * (1 - item.descuento / 100);
+    // Calculamos el precio con ganancia incluida pero ocultamos el desglose de ganancia
+    const precioBaseConDesc = item.precioUnit * (1 - item.descuento / 100);
+    const precioConGanancia = precioBaseConDesc * (1 + (item.ganancia || 0) / 100);
+    const st = item.cantidad * precioConGanancia;
+
     sub += st;
     return `<tr>
       <td>${i + 1}</td>
       <td>${item.nombre}</td>
       <td style="text-align:center">${fmt(item.cantidad, 0)}</td>
-      <td style="text-align:right">${fmtARS(item.precioUnit)}</td>
-      <td style="text-align:center">${item.descuento > 0 ? item.descuento + '%' : '—'}</td>
+      <td style="text-align:right">${fmtARS(precioConGanancia)}</td>
+      <td style="text-align:center">—</td>
       <td style="text-align:right;font-weight:600">${fmtARS(st)}</td>
     </tr>`;
   }).join('');

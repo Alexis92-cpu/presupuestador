@@ -26,7 +26,7 @@
         <div class="login-container">
             <div class="login-card">
                 <div class="login-logo">
-                    <img src="Logo.png" alt="NETPOINT" class="main-logo-img">
+                    <img src="logo.png" alt="NETPOINT" class="main-logo-img">
                 </div>
                 <form id="loginForm" class="login-form" onsubmit="handleLogin(event)">
                     <div class="form-group">
@@ -322,6 +322,19 @@
                             <label>Desc. %</label>
                             <input type="number" id="itemDesc" class="form-control" value="0" min="0" max="100" />
                         </div>
+                        <div class="form-group">
+                            <label>Ganancia % (Int.)</label>
+                            <select id="itemGanancia" class="form-control">
+                                <option value="0">0%</option>
+                                <option value="5">5%</option>
+                                <option value="10">10%</option>
+                                <option value="15">15%</option>
+                                <option value="20">20%</option>
+                                <option value="25">25%</option>
+                                <option value="30">30%</option>
+                                <option value="35">35%</option>
+                            </select>
+                        </div>
                         <div class="form-group align-end">
                             <button class="btn-primary" onclick="addItemToPresupuesto()">+ Agregar</button>
                         </div>
@@ -338,6 +351,7 @@
                                 <th>Cant.</th>
                                 <th>Precio unit.</th>
                                 <th>Desc. %</th>
+                                <th>Ganancia %</th>
                                 <th>Subtotal ARS</th>
                                 <th>Subtotal USD</th>
                                 <th></th>
