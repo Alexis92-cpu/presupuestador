@@ -25,8 +25,11 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const fs = firebase.firestore();
 
-// Configuración para evitar problemas de caché en móviles
-fs.settings({ experimentalForceLongPolling: true });
+// MÁXIMA COMPATIBILIDAD PARA MÓVILES
+fs.settings({
+  experimentalForceLongPolling: true, // Evita bloqueos de websockets
+  ssl: true
+});
 
 const DB_COLLECTION = 'netpoint_v1';
 const DB_DOC = 'main_db';
@@ -56,7 +59,8 @@ function saveDB(db) {
 async function syncFromCloud() {
   console.log("Iniciando sincronización con la nube...");
   try {
-    const doc = await fs.collection(DB_COLLECTION).doc(DB_DOC).get();
+    // Forzamos que traiga el dato del SERVIDOR, no de la memoria del celu
+    const doc = await fs.collection(DB_COLLECTION).doc(DB_DOC).get({ source: 'server' });
     if (doc.exists) {
       const cloudData = doc.data();
       localStorage.setItem(DB_KEY, JSON.stringify(cloudData));
