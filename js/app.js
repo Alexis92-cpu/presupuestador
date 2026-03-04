@@ -24,6 +24,10 @@ const firebaseConfig = {
 // Inicializar Firebase (vía el compat SDK que pusimos en el HTML)
 firebase.initializeApp(firebaseConfig);
 const fs = firebase.firestore();
+
+// Configuración para evitar problemas de caché en móviles
+fs.settings({ experimentalForceLongPolling: true });
+
 const DB_COLLECTION = 'netpoint_v1';
 const DB_DOC = 'main_db';
 
