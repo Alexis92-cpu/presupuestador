@@ -68,7 +68,8 @@ async function syncFromCloud() {
     }
   } catch (err) {
     console.error("Error de sincronización inicial:", err);
-    showToast("Error al conectar con la nube", "error");
+    // Mostramos el mensaje real para saber qué pasa
+    showToast("Error: " + (err.message || "Conexión fallida"), "error");
   }
   return getDB();
 }
