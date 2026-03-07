@@ -13,7 +13,15 @@
 // =====================================================
 const SUPABASE_URL = "https://wrvjdyvwaejuguedqwsa.supabase.co";
 const SUPABASE_KEY = "sb_publishable_1b-kU32O9IMKtrZdyiHN8Q_gHIAo8wd";
-const supabase = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
+let supabase = null;
+
+function initSupabase() {
+  if (window.supabase && !supabase) {
+    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    console.log("Supabase Client creado ✓");
+  }
+  return supabase;
+}
 
 const DB_KEY = 'netpoint_db';
 const TABLE_NAME = 'app_data';
@@ -33,27 +41,31 @@ async function saveDB(db) {
   localStorage.setItem(DB_KEY, JSON.stringify(db));
 
   // Sincronizar con Supabase
-  if (supabase) {
+  const client = initSupabase();
+  if (client) {
     try {
-      await supabase
+      await client
         .from(TABLE_NAME)
         .upsert({ id: DATA_ID, data: db });
     } catch (err) {
-      console.error("Fallo de conexión al guardar:", err);
+      console.error("Fallo al guardar en Supabase:", err);
+      updateCloudStatus('error', 'Fallo al guardar en la nube.');
     }
   }
 }
 
 async function syncFromCloud() {
-  if (!supabase) {
-    updateCloudStatus('offline');
-    return getDB();
+  const client = initSupabase();
+  if (!client) {
+    // Si no está listo todavía, reintentamos en 1 seg
+    setTimeout(syncFromCloud, 1000);
+    return;
   }
 
   updateCloudStatus('syncing');
 
   try {
-    const { data: result, error } = await supabase
+    const { data: result, error } = await client
       .from(TABLE_NAME)
       .select('data')
       .eq('id', DATA_ID)
@@ -104,8 +116,14 @@ function updateCloudStatus(status, extra = '') {
 }
 
 // Escuchador en tiempo real con Supabase
-if (supabase) {
-  supabase
+function startRealtime() {
+  const client = initSupabase();
+  if (!client) {
+    setTimeout(startRealtime, 2000);
+    return;
+  }
+
+  client
     .channel('any')
     .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: TABLE_NAME }, payload => {
       if (payload.new && payload.new.id === DATA_ID) {
@@ -122,6 +140,7 @@ if (supabase) {
     })
     .subscribe();
 }
+startRealtime();
 
 // Inicializa la base de datos con datos de ejemplo
 function initDB() {
