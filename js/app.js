@@ -1,44 +1,32 @@
 /* ===================================================
-   NETPOINT – app.js
-   Logic: Auth, Products, Clients, Users, Budgets, Dollar API
+   NETPOINT – app.js v3.4 (Supabase Engine)
    =================================================== */
-
 'use strict';
 
-// =====================================================
-// STATE & STORAGE
-// =====================================================
-// =====================================================
-// SUPABASE CONFIG & INIT
-// =====================================================
 const SUPABASE_URL = "https://wrvjdyvwaejuguedqwsa.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndydmpkeXZ3YWVqdWd1ZWRxd3NhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5MTEwNzksImV4cCI6MjA4ODQ4NzA3OX0.irf_mFgAaAoNWachMKpwf5WWUHSVMIf3_j5LA5O9lSI";
-console.log("NETPOINT v3.3 - Iniciando...");
+let supabase = null;
 
 function initSupabase() {
-  if (window.supabase) {
-    if (!supabase) {
-      supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-      console.log("Supabase Client listo ✓");
+  try {
+    if (window.supabase) {
+      if (!supabase) {
+        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        console.log("Supabase listo");
+      }
+      return supabase;
     }
-  } else {
-    console.error("Librería Supabase no encontrada en window");
-    updateCloudStatus('error', 'No se cargó el motor de red');
-  }
-  return supabase;
+  } catch (e) { console.error("Error init Supabase:", e); }
+  return null;
 }
 
 const DB_KEY = 'netpoint_db';
 const TABLE_NAME = 'app_data';
 const DATA_ID = 'main_config';
 
-// =====================================================
-// STATE & STORAGE
-// =====================================================
 function getDB() {
-  try {
-    return JSON.parse(localStorage.getItem(DB_KEY)) || {};
-  } catch { return {}; }
+  try { return JSON.parse(localStorage.getItem(DB_KEY)) || {}; }
+  catch (e) { return {}; }
 }
 
 async function saveDB(db) {
