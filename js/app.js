@@ -1,5 +1,5 @@
 /* ===================================================
-   NETPOINT – app.js v3.4 (Supabase Engine)
+   NETPOINT – app.js v3.5 (Supabase Auto-Engine)
    =================================================== */
 'use strict';
 
@@ -12,11 +12,13 @@ function initSupabase() {
     if (window.supabase) {
       if (!supabase) {
         supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        console.log("Supabase listo");
+        console.log("Supabase inicializado ✓");
       }
       return supabase;
     }
-  } catch (e) { console.error("Error init Supabase:", e); }
+  } catch (e) {
+    console.error("Error al iniciar Supabase:", e);
+  }
   return null;
 }
 
@@ -25,34 +27,32 @@ const TABLE_NAME = 'app_data';
 const DATA_ID = 'main_config';
 
 function getDB() {
-  try { return JSON.parse(localStorage.getItem(DB_KEY)) || {}; }
-  catch (e) { return {}; }
+  try {
+    const local = localStorage.getItem(DB_KEY);
+    return local ? JSON.parse(local) : {};
+  } catch (e) { return {}; }
 }
 
 async function saveDB(db) {
-  // Guardar localmente para velocidad inmediata
   localStorage.setItem(DB_KEY, JSON.stringify(db));
-
-  // Sincronizar con Supabase
   const client = initSupabase();
   if (client) {
     try {
-      await client
-        .from(TABLE_NAME)
-        .upsert({ id: DATA_ID, data: db });
-    } catch (err) {
-      console.error("Fallo al guardar en Supabase:", err);
-      updateCloudStatus('error', 'Fallo al guardar en la nube.');
-    }
+      await client.from(TABLE_NAME).upsert({ id: DATA_ID, data: db });
+    } catch (e) { console.error("Error nube:", e); }
   }
 }
 
 async function syncFromCloud() {
   const client = initSupabase();
+
+  // Si no hay librería, avisamos y salimos (el modo local sigue funcionando)
   if (!client) {
-    // Si no está listo todavía, reintentamos en 1 seg
-    setTimeout(syncFromCloud, 1000);
-    return;
+    console.warn("Motor de red no disponible. Operando en modo local.");
+    updateCloudStatus('offline');
+    const notice = document.getElementById('offlineNotice');
+    if (notice) notice.classList.remove('hidden');
+    return getDB();
   }
 
   updateCloudStatus('syncing');
@@ -69,7 +69,6 @@ async function syncFromCloud() {
     if (result && result.data) {
       localStorage.setItem(DB_KEY, JSON.stringify(result.data));
       updateCloudStatus('online');
-
       if (currentUser) {
         renderPresupuestos();
         renderProductos();
@@ -78,13 +77,14 @@ async function syncFromCloud() {
       }
       return result.data;
     } else {
-      console.log("Inicializando datos en Supabase...");
       await saveDB(getDB());
       updateCloudStatus('online');
     }
   } catch (err) {
-    console.error("Error sync Supabase:", err);
+    console.error("Error de sincronización:", err);
     updateCloudStatus('error', err.message);
+    const notice = document.getElementById('offlineNotice');
+    if (notice) notice.classList.remove('hidden');
   }
   return getDB();
 }
@@ -94,46 +94,42 @@ function updateCloudStatus(status, extra = '') {
   if (!badge) return;
 
   if (status === 'syncing') {
-    badge.innerHTML = '🔄 Conectando Supabase...';
+    badge.innerHTML = '🔄 Buscando nube...';
     badge.className = 'cloud-status syncing';
   } else if (status === 'online') {
-    badge.innerHTML = '⚡ Supabase Conectado';
+    badge.innerHTML = '⚡ Nivelado con Nube';
     badge.className = 'cloud-status online';
   } else if (status === 'offline') {
-    badge.innerHTML = '📶 Modo Local (Offline)';
+    badge.innerHTML = '📶 Solo Modo Local';
     badge.className = 'cloud-status offline';
   } else {
-    badge.innerHTML = '⚠️ Error: ' + (extra || 'Fallo de red');
+    badge.innerHTML = '⚠️ Nube parada (Local OK)';
     badge.className = 'cloud-status error';
   }
 }
 
-// Escuchador en tiempo real con Supabase
 function startRealtime() {
   const client = initSupabase();
-  if (!client) {
-    setTimeout(startRealtime, 2000);
-    return;
-  }
+  if (!client) return;
 
-  client
-    .channel('any')
+  client.channel('any')
     .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: TABLE_NAME }, payload => {
       if (payload.new && payload.new.id === DATA_ID) {
         const cloudData = payload.new.data;
         localStorage.setItem(DB_KEY, JSON.stringify(cloudData));
         if (currentUser) {
-          showToast("Datos actualizados ⚡", "info");
+          showToast("Actualizado ⚡", "info");
           renderPresupuestos();
           renderProductos();
           renderClientes();
           renderUsuarios();
         }
       }
-    })
-    .subscribe();
+    }).subscribe();
 }
-startRealtime();
+
+// Iniciar tiempo real en 5s para no saturar el arranque
+setTimeout(startRealtime, 5000);
 
 // Inicializa la base de datos con datos de ejemplo
 function initDB() {

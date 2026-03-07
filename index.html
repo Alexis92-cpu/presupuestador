@@ -53,7 +53,11 @@
                         <span class="btn-loader hidden">⏳</span>
                     </button>
                 </form>
-                <div id="cloudStatusBadge" class="cloud-status syncing">☁️ Conectando con servidor...</div>
+                <div id="cloudStatusBadge" class="cloud-status syncing">☁️ Conectando...</div>
+                <div id="offlineNotice" class="hidden"
+                    style="text-align:center; color:orange; font-size:10px; margin-top:5px;">
+                    ⚠️ Trabajando en modo local
+                </div>
             </div>
         </div>
     </div>
@@ -610,10 +614,10 @@
         </button>
     </div>
 
-    <!-- Supabase SDK (Motor de sincronización - CDN Alternativo) -->
-    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <!-- Supabase SDK v2 -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.42.0/dist/umd/supabase.js"></script>
 
-    <script src="js/app.js?v=3.3"></script>
+    <script src="js/app.js?v=3.5"></script>
 </body>
 
 </html>
