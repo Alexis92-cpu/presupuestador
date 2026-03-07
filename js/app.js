@@ -31,16 +31,13 @@ try {
     // Configuraciones de red súper robustas para dispositivos móviles
     fs.settings({
       experimentalForceLongPolling: true,
-      ssl: true,
-      merge: true
+      ssl: true
     });
 
-    // Escuchar cambios de conexión de red
-    fs.enableNetwork().then(() => console.log("Red de Firebase habilitada"));
+    // Forzar conexión activa
+    fs.enableNetwork().catch(e => console.error("Error enableNetwork:", e));
 
     console.log("Firebase inicializado ✓");
-  } else {
-    console.warn("Firebase no cargó.");
   }
 } catch (err) {
   console.error("Error Firebase:", err);
@@ -73,35 +70,48 @@ function saveDB(db) {
 }
 
 async function syncFromCloud() {
-  if (!fs) return getDB();
+  if (!fs) {
+    updateCloudStatus('offline');
+    return getDB();
+  }
+
   updateCloudStatus('syncing');
   console.log("Intentando sincronización con la nube...");
-  try {
-    // Timeout de 5 segundos para no dejar al usuario esperando
-    const syncPromise = fs.collection(DB_COLLECTION).doc(DB_DOC).get({ source: 'server' });
-    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 5000));
 
-    const doc = await Promise.race([syncPromise, timeoutPromise]);
+  // Si en 10 segundos no hay respuesta, avisamos
+  const autoOffline = setTimeout(() => {
+    const badge = document.getElementById('cloudStatusBadge');
+    if (badge && (badge.classList.contains('syncing') || badge.innerText.includes('Sincronizando'))) {
+      updateCloudStatus('offline');
+    }
+  }, 10000);
+
+  try {
+    // Forzar que ignore la memoria local del celular (que suele dar el error offline)
+    const doc = await fs.collection(DB_COLLECTION).doc(DB_DOC).get({ source: 'server' });
+    clearTimeout(autoOffline);
+
     if (doc.exists) {
       const cloudData = doc.data();
       localStorage.setItem(DB_KEY, JSON.stringify(cloudData));
-      console.log("Datos sincronizados desde la nube ✓");
-      showToast("Datos sincronizados ☁️", "success");
       updateCloudStatus('online');
+
+      // Si ya está logueado, refrescar todo
+      if (currentUser) {
+        showToast("Datos actualizados ☁️", "success");
+        renderPresupuestos();
+        renderProductos();
+        renderClientes();
+        renderUsuarios();
+      }
       return cloudData;
-    } else {
-      console.warn("No se encontró el documento en la nube. Usando local.");
     }
   } catch (err) {
-    console.error("Error de sincronización inicial:", err);
-    // Si es un error de offline, no molestamos al usuario con un error crítico
-    if (err.message && err.message.includes("offline")) {
-      console.warn("El modo offline está activo, usando datos locales.");
-      updateCloudStatus('offline');
-    } else {
-      showToast("Error de nube: " + (err.message || "Fallo"), "error");
-      updateCloudStatus('error');
-    }
+    clearTimeout(autoOffline);
+    console.error("Error sync:", err);
+    updateCloudStatus('error');
+    // Si falla por offline, intentamos forzar la red nuevamente para la próxima
+    fs.enableNetwork();
   }
   return getDB();
 }
@@ -157,12 +167,12 @@ if (fs) {
 function initDB() {
   let db = getDB();
 
-  if (!db.initialized) {
+  if (!db.initialized || !db.usuarios || db.usuarios.length === 0) {
     db.usuarios = [
       { id: 1, username: 'admin', password: btoa('admin123'), nombre: 'Administrador', rol: 'admin', estado: 'activo' },
       { id: 2, username: 'vendedor1', password: btoa('venta123'), nombre: 'Juan Pérez', rol: 'vendedor', estado: 'activo' }
     ];
-    db.productos = [
+    db.productos = db.productos || [
       { id: 1, codigo: 'SERV-001', nombre: 'Consultoría IT (hora)', categoria: 'Servicios', unidad: 'horas', precioARS: 15000, descripcion: 'Consultoría técnica por hora' },
       { id: 2, codigo: 'SERV-002', nombre: 'Desarrollo Web', categoria: 'Servicios', unidad: 'servicio', precioARS: 350000, descripcion: 'Desarrollo de sitio web completo' },
       { id: 3, codigo: 'HW-001', nombre: 'Notebook HP 15"', categoria: 'Hardware', unidad: 'unidad', precioARS: 890000, descripcion: 'Notebook HP 15-dy i5 16GB 512SSD' },
