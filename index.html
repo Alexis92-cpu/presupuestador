@@ -53,6 +53,7 @@
                         <span class="btn-loader hidden">⏳</span>
                     </button>
                 </form>
+                <div id="cloudStatusBadge" class="cloud-status syncing">☁️ Conectando con servidor...</div>
             </div>
         </div>
     </div>
@@ -593,11 +594,27 @@
     <!-- TOAST NOTIFICATION -->
     <div id="toastContainer" class="toast-container"></div>
 
+    <script>
+        function forceResetApp() {
+            if (confirm('¿Eliminar datos locales y reintentar? (No perderás lo que está en la nube)')) {
+                localStorage.clear();
+                sessionStorage.clear();
+                location.reload();
+            }
+        }
+    </script>
+    <div style="text-align:center; margin-top: 10px;">
+        <button onclick="forceResetApp()"
+            style="background:transparent; border:none; color:var(--text-muted); font-size:10px; cursor:pointer; text-decoration:underline;">
+            Problemas al entrar? Haz clic aquí
+        </button>
+    </div>
+
     <!-- Firebase SDK (Versión más moderna y estable) -->
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
 
-    <script src="js/app.js?v=1.4"></script>
+    <script src="js/app.js?v=1.5"></script>
 </body>
 
 </html>

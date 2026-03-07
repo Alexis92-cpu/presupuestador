@@ -21,23 +21,29 @@ const firebaseConfig = {
   measurementId: "G-4K9PYER9G6"
 };
 
-// Inicializar Firebase de forma segura
+// Inicializar Firebase de forma segura con mejor compatibilidad
 let fs = null;
 try {
   if (typeof firebase !== 'undefined') {
     firebase.initializeApp(firebaseConfig);
     fs = firebase.firestore();
-    // MÁXIMA COMPATIBILIDAD PARA MÓVILES
+
+    // Configuraciones de red súper robustas para dispositivos móviles
     fs.settings({
       experimentalForceLongPolling: true,
-      ssl: true
+      ssl: true,
+      merge: true
     });
-    console.log("Firebase inicializado correctamente ✓");
+
+    // Escuchar cambios de conexión de red
+    fs.enableNetwork().then(() => console.log("Red de Firebase habilitada"));
+
+    console.log("Firebase inicializado ✓");
   } else {
-    console.warn("Firebase SDK no cargó. Funcionando en modo local.");
+    console.warn("Firebase no cargó.");
   }
 } catch (err) {
-  console.error("Error al inicializar Firebase:", err);
+  console.error("Error Firebase:", err);
 }
 
 const DB_COLLECTION = 'netpoint_v1';
@@ -68,6 +74,7 @@ function saveDB(db) {
 
 async function syncFromCloud() {
   if (!fs) return getDB();
+  updateCloudStatus('syncing');
   console.log("Intentando sincronización con la nube...");
   try {
     // Timeout de 5 segundos para no dejar al usuario esperando
@@ -80,22 +87,49 @@ async function syncFromCloud() {
       localStorage.setItem(DB_KEY, JSON.stringify(cloudData));
       console.log("Datos sincronizados desde la nube ✓");
       showToast("Datos sincronizados ☁️", "success");
+      updateCloudStatus('online');
       return cloudData;
     } else {
       console.warn("No se encontró el documento en la nube. Usando local.");
     }
   } catch (err) {
     console.error("Error de sincronización inicial:", err);
-    // Mostramos el mensaje real para saber qué pasa
-    showToast("Error: " + (err.message || "Conexión fallida"), "error");
+    // Si es un error de offline, no molestamos al usuario con un error crítico
+    if (err.message && err.message.includes("offline")) {
+      console.warn("El modo offline está activo, usando datos locales.");
+      updateCloudStatus('offline');
+    } else {
+      showToast("Error de nube: " + (err.message || "Fallo"), "error");
+      updateCloudStatus('error');
+    }
   }
   return getDB();
+}
+
+function updateCloudStatus(status) {
+  const badge = document.getElementById('cloudStatusBadge');
+  if (!badge) return;
+
+  if (status === 'syncing') {
+    badge.innerHTML = '🔄 Sincronizando...';
+    badge.className = 'cloud-status syncing';
+  } else if (status === 'online') {
+    badge.innerHTML = '☁️ Nube Conectada';
+    badge.className = 'cloud-status online';
+  } else if (status === 'offline') {
+    badge.innerHTML = '📶 Modo Local (Offline)';
+    badge.className = 'cloud-status offline';
+  } else {
+    badge.innerHTML = '⚠️ Error de Nube';
+    badge.className = 'cloud-status error';
+  }
 }
 
 // Escuchador en tiempo real: Si otro dispositivo cambia algo, este lo recibe
 if (fs) {
   fs.collection(DB_COLLECTION).doc(DB_DOC).onSnapshot(doc => {
     if (doc.exists) {
+      updateCloudStatus('online');
       const cloudData = doc.data();
       const localData = localStorage.getItem(DB_KEY);
 
@@ -205,6 +239,10 @@ function handleLogin(e) {
     card.style.animation = 'none';
     card.offsetHeight; // reflow
     card.style.animation = 'shake 0.4s ease';
+
+    // Debug info si estamos en desarrollo
+    console.log("Intento de login fallido para:", username);
+    console.log("Usuarios disponibles en DB local:", (db.usuarios || []).map(u => u.username));
   }
 }
 

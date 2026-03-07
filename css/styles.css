@@ -306,6 +306,35 @@ body {
   color: var(--text-secondary);
 }
 
+.cloud-status {
+  text-align: center;
+  font-size: 11px;
+  margin-top: 20px;
+  padding: 6px;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+}
+
+.cloud-status.syncing {
+  color: var(--warning);
+  background: var(--warning-light);
+}
+
+.cloud-status.online {
+  color: var(--success);
+  background: var(--success-light);
+}
+
+.cloud-status.offline {
+  color: var(--text-muted);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.cloud-status.error {
+  color: var(--danger);
+  background: var(--danger-light);
+}
+
 /* ===================================================
    TOPBAR
    =================================================== */
