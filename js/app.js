@@ -9,62 +9,43 @@
 // STATE & STORAGE
 // =====================================================
 // =====================================================
-// FIREBASE CONFIG & INIT
+// SUPABASE CONFIG & INIT
 // =====================================================
-const firebaseConfig = {
-  apiKey: "AIzaSyDcb-TeEu34eY5DIzwCA2C9O-uG5VOrcw8",
-  authDomain: "netpoint-presupuestador.firebaseapp.com",
-  projectId: "netpoint-presupuestador",
-  storageBucket: "netpoint-presupuestador.firebasestorage.app",
-  messagingSenderId: "1048443433100",
-  appId: "1:1048443433100:web:620e4e41b1322a8846cba9",
-  measurementId: "G-4K9PYER9G6"
-};
+const SUPABASE_URL = "https://wrvjdyvwaejuguedqwsa.supabase.co";
+const SUPABASE_KEY = "sb_publishable_1b-kU32O9IMKtrZdyiHN8Q_gHIAo8wd";
+const supabase = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
 
-// Inicializar Firebase
-let fs = null;
-try {
-  if (typeof firebase !== 'undefined') {
-    firebase.initializeApp(firebaseConfig);
-    fs = firebase.firestore();
-
-    // IMPORTANTE: Forzamos la red cada vez que inicia
-    fs.enableNetwork().then(() => console.log("Red forzada ✓"));
-
-    console.log("Firebase inicializado v2.0 ✓");
-  }
-} catch (err) {
-  console.error("Error Firebase:", err);
-}
-
-const DB_COLLECTION = 'netpoint_v1';
-const DB_DOC = 'main_db';
+const DB_KEY = 'netpoint_db';
+const TABLE_NAME = 'app_data';
+const DATA_ID = 'main_config';
 
 // =====================================================
 // STATE & STORAGE
 // =====================================================
-const DB_KEY = 'netpoint_db';
-
 function getDB() {
   try {
     return JSON.parse(localStorage.getItem(DB_KEY)) || {};
   } catch { return {}; }
 }
 
-function saveDB(db) {
+async function saveDB(db) {
   // Guardar localmente para velocidad inmediata
   localStorage.setItem(DB_KEY, JSON.stringify(db));
 
-  // Sincronizar con la nube solo si Firebase está activo
-  if (fs) {
-    fs.collection(DB_COLLECTION).doc(DB_DOC).set(db).catch(err => {
-      console.error("Error al guardar en la nube:", err);
-    });
+  // Sincronizar con Supabase
+  if (supabase) {
+    try {
+      await supabase
+        .from(TABLE_NAME)
+        .upsert({ id: DATA_ID, data: db });
+    } catch (err) {
+      console.error("Fallo de conexión al guardar:", err);
+    }
   }
 }
 
 async function syncFromCloud() {
-  if (!fs) {
+  if (!supabase) {
     updateCloudStatus('offline');
     return getDB();
   }
@@ -72,14 +53,16 @@ async function syncFromCloud() {
   updateCloudStatus('syncing');
 
   try {
-    // Intentamos despertar la conexión antes de pedir el dato
-    await fs.enableNetwork();
+    const { data: result, error } = await supabase
+      .from(TABLE_NAME)
+      .select('data')
+      .eq('id', DATA_ID)
+      .single();
 
-    const doc = await fs.collection(DB_COLLECTION).doc(DB_DOC).get();
+    if (error && error.code !== 'PGRST116') throw error;
 
-    if (doc.exists) {
-      const cloudData = doc.data();
-      localStorage.setItem(DB_KEY, JSON.stringify(cloudData));
+    if (result && result.data) {
+      localStorage.setItem(DB_KEY, JSON.stringify(result.data));
       updateCloudStatus('online');
 
       if (currentUser) {
@@ -88,15 +71,16 @@ async function syncFromCloud() {
         renderClientes();
         renderUsuarios();
       }
+      return result.data;
     } else {
-      saveDB(getDB());
+      console.log("Inicializando datos en Supabase...");
+      await saveDB(getDB());
       updateCloudStatus('online');
     }
   } catch (err) {
-    console.error("Error sync:", err);
+    console.error("Error sync Supabase:", err);
     updateCloudStatus('error', err.message);
   }
-
   return getDB();
 }
 
@@ -105,10 +89,10 @@ function updateCloudStatus(status, extra = '') {
   if (!badge) return;
 
   if (status === 'syncing') {
-    badge.innerHTML = '🔄 Sincronizando...';
+    badge.innerHTML = '🔄 Conectando Supabase...';
     badge.className = 'cloud-status syncing';
   } else if (status === 'online') {
-    badge.innerHTML = '☁️ Nube Conectada';
+    badge.innerHTML = '⚡ Supabase Conectado';
     badge.className = 'cloud-status online';
   } else if (status === 'offline') {
     badge.innerHTML = '📶 Modo Local (Offline)';
@@ -119,32 +103,24 @@ function updateCloudStatus(status, extra = '') {
   }
 }
 
-// Escuchador en tiempo real: Si otro dispositivo cambia algo, este lo recibe
-if (fs) {
-  fs.collection(DB_COLLECTION).doc(DB_DOC).onSnapshot(doc => {
-    if (doc.exists) {
-      updateCloudStatus('online');
-      const cloudData = doc.data();
-      const localData = localStorage.getItem(DB_KEY);
-
-      // Si los datos son diferentes a lo que tenemos localmente, actualizamos
-      if (JSON.stringify(cloudData) !== localData) {
+// Escuchador en tiempo real con Supabase
+if (supabase) {
+  supabase
+    .channel('any')
+    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: TABLE_NAME }, payload => {
+      if (payload.new && payload.new.id === DATA_ID) {
+        const cloudData = payload.new.data;
         localStorage.setItem(DB_KEY, JSON.stringify(cloudData));
-
-        // Si el usuario ya está dentro de la app, refrescamos la vista
         if (currentUser) {
-          showToast("Datos actualizados desde otro dispositivo ☁️", "info");
-          // Refrescar la sección actual para ver los cambios
-          const currentSection = document.querySelector('.section.active')?.id.replace('section-', '') || 'presupuestos';
-          // Re-renderizar todo
+          showToast("Datos actualizados ⚡", "info");
           renderPresupuestos();
           renderProductos();
           renderClientes();
           renderUsuarios();
         }
       }
-    }
-  });
+    })
+    .subscribe();
 }
 
 // Inicializa la base de datos con datos de ejemplo
