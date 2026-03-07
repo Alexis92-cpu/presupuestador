@@ -87,8 +87,8 @@ async function syncFromCloud() {
   }, 10000);
 
   try {
-    // Forzar que ignore la memoria local del celular (que suele dar el error offline)
-    const doc = await fs.collection(DB_COLLECTION).doc(DB_DOC).get({ source: 'server' });
+    // Intentamos cargar lo más reciente posible
+    const doc = await fs.collection(DB_COLLECTION).doc(DB_DOC).get();
     clearTimeout(autoOffline);
 
     if (doc.exists) {
@@ -109,14 +109,14 @@ async function syncFromCloud() {
   } catch (err) {
     clearTimeout(autoOffline);
     console.error("Error sync:", err);
-    updateCloudStatus('error');
+    updateCloudStatus('error', err.message);
     // Si falla por offline, intentamos forzar la red nuevamente para la próxima
     fs.enableNetwork();
   }
   return getDB();
 }
 
-function updateCloudStatus(status) {
+function updateCloudStatus(status, extra = '') {
   const badge = document.getElementById('cloudStatusBadge');
   if (!badge) return;
 
@@ -130,7 +130,7 @@ function updateCloudStatus(status) {
     badge.innerHTML = '📶 Modo Local (Offline)';
     badge.className = 'cloud-status offline';
   } else {
-    badge.innerHTML = '⚠️ Error de Nube';
+    badge.innerHTML = '⚠️ Error: ' + (extra || 'Fallo de red');
     badge.className = 'cloud-status error';
   }
 }
