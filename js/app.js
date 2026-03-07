@@ -21,15 +21,24 @@ const firebaseConfig = {
   measurementId: "G-4K9PYER9G6"
 };
 
-// Inicializar Firebase (vía el compat SDK que pusimos en el HTML)
-firebase.initializeApp(firebaseConfig);
-const fs = firebase.firestore();
-
-// MÁXIMA COMPATIBILIDAD PARA MÓVILES
-fs.settings({
-  experimentalForceLongPolling: true, // Evita bloqueos de websockets
-  ssl: true
-});
+// Inicializar Firebase de forma segura
+let fs = null;
+try {
+  if (typeof firebase !== 'undefined') {
+    firebase.initializeApp(firebaseConfig);
+    fs = firebase.firestore();
+    // MÁXIMA COMPATIBILIDAD PARA MÓVILES
+    fs.settings({
+      experimentalForceLongPolling: true,
+      ssl: true
+    });
+    console.log("Firebase inicializado correctamente ✓");
+  } else {
+    console.warn("Firebase SDK no cargó. Funcionando en modo local.");
+  }
+} catch (err) {
+  console.error("Error al inicializar Firebase:", err);
+}
 
 const DB_COLLECTION = 'netpoint_v1';
 const DB_DOC = 'main_db';
@@ -46,21 +55,26 @@ function getDB() {
 }
 
 function saveDB(db) {
-  // Guardar localmente para velocidad
+  // Guardar localmente para velocidad inmediata
   localStorage.setItem(DB_KEY, JSON.stringify(db));
 
-  // Sincronizar con la nube (Firestore)
-  fs.collection(DB_COLLECTION).doc(DB_DOC).set(db).catch(err => {
-    console.error("Error al guardar en la nube:", err);
-  });
+  // Sincronizar con la nube solo si Firebase está activo
+  if (fs) {
+    fs.collection(DB_COLLECTION).doc(DB_DOC).set(db).catch(err => {
+      console.error("Error al guardar en la nube:", err);
+    });
+  }
 }
 
-// Función para descargar datos de la nube al iniciar
 async function syncFromCloud() {
-  console.log("Iniciando sincronización con la nube...");
+  if (!fs) return getDB();
+  console.log("Intentando sincronización con la nube...");
   try {
-    // Forzamos que traiga el dato del SERVIDOR, no de la memoria del celu
-    const doc = await fs.collection(DB_COLLECTION).doc(DB_DOC).get({ source: 'server' });
+    // Timeout de 5 segundos para no dejar al usuario esperando
+    const syncPromise = fs.collection(DB_COLLECTION).doc(DB_DOC).get({ source: 'server' });
+    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 5000));
+
+    const doc = await Promise.race([syncPromise, timeoutPromise]);
     if (doc.exists) {
       const cloudData = doc.data();
       localStorage.setItem(DB_KEY, JSON.stringify(cloudData));
@@ -79,29 +93,31 @@ async function syncFromCloud() {
 }
 
 // Escuchador en tiempo real: Si otro dispositivo cambia algo, este lo recibe
-fs.collection(DB_COLLECTION).doc(DB_DOC).onSnapshot(doc => {
-  if (doc.exists) {
-    const cloudData = doc.data();
-    const localData = localStorage.getItem(DB_KEY);
+if (fs) {
+  fs.collection(DB_COLLECTION).doc(DB_DOC).onSnapshot(doc => {
+    if (doc.exists) {
+      const cloudData = doc.data();
+      const localData = localStorage.getItem(DB_KEY);
 
-    // Si los datos son diferentes a lo que tenemos localmente, actualizamos
-    if (JSON.stringify(cloudData) !== localData) {
-      localStorage.setItem(DB_KEY, JSON.stringify(cloudData));
+      // Si los datos son diferentes a lo que tenemos localmente, actualizamos
+      if (JSON.stringify(cloudData) !== localData) {
+        localStorage.setItem(DB_KEY, JSON.stringify(cloudData));
 
-      // Si el usuario ya está dentro de la app, refrescamos la vista
-      if (currentUser) {
-        showToast("Datos actualizados desde otro dispositivo ☁️", "info");
-        // Refrescar la sección actual para ver los cambios
-        const currentSection = document.querySelector('.section.active')?.id.replace('section-', '') || 'presupuestos';
-        // Re-renderizar todo
-        renderPresupuestos();
-        renderProductos();
-        renderClientes();
-        renderUsuarios();
+        // Si el usuario ya está dentro de la app, refrescamos la vista
+        if (currentUser) {
+          showToast("Datos actualizados desde otro dispositivo ☁️", "info");
+          // Refrescar la sección actual para ver los cambios
+          const currentSection = document.querySelector('.section.active')?.id.replace('section-', '') || 'presupuestos';
+          // Re-renderizar todo
+          renderPresupuestos();
+          renderProductos();
+          renderClientes();
+          renderUsuarios();
+        }
       }
     }
-  }
-});
+  });
+}
 
 // Inicializa la base de datos con datos de ejemplo
 function initDB() {
@@ -1187,12 +1203,12 @@ document.head.appendChild(style);
 // =====================================================
 // INIT
 // =====================================================
-document.addEventListener('DOMContentLoaded', async () => {
-  // 1. Intentar sincronizar desde la nube primero
-  await syncFromCloud();
-
-  // 2. Inicializar DB (creará datos de ejemplo si la nube estaba vacía)
+document.addEventListener('DOMContentLoaded', () => {
+  // 1. Inicializar DB local inmediatamente (evita pantalla blanca)
   initDB();
+
+  // 2. Intentar sincronizar en SEGUNDO PLANO (no bloquea el inicio)
+  syncFromCloud();
 
   // Restaurar sesión si existe
   const savedUser = sessionStorage.getItem('presupuestopro_user');
