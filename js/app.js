@@ -21,21 +21,15 @@ const firebaseConfig = {
   measurementId: "G-4K9PYER9G6"
 };
 
-// Inicializar Firebase de forma segura con mejor compatibilidad
+// Inicializar Firebase
 let fs = null;
 try {
   if (typeof firebase !== 'undefined') {
     firebase.initializeApp(firebaseConfig);
     fs = firebase.firestore();
 
-    // Configuraciones de red súper robustas para dispositivos móviles
-    fs.settings({
-      experimentalForceLongPolling: true,
-      ssl: true
-    });
-
-    // Forzar conexión activa
-    fs.enableNetwork().catch(e => console.error("Error enableNetwork:", e));
+    // Configuración estándar (más compatible)
+    fs.settings({ cacheSizeBytes: firebase.firestore.CACHE_SIZE_UNLIMITED });
 
     console.log("Firebase inicializado ✓");
   }
@@ -76,42 +70,33 @@ async function syncFromCloud() {
   }
 
   updateCloudStatus('syncing');
-  console.log("Intentando sincronización con la nube...");
-
-  // Si en 10 segundos no hay respuesta, avisamos
-  const autoOffline = setTimeout(() => {
-    const badge = document.getElementById('cloudStatusBadge');
-    if (badge && (badge.classList.contains('syncing') || badge.innerText.includes('Sincronizando'))) {
-      updateCloudStatus('offline');
-    }
-  }, 10000);
 
   try {
-    // Intentamos cargar lo más reciente posible
+    // Escuchador que fuerza la primera carga
     const doc = await fs.collection(DB_COLLECTION).doc(DB_DOC).get();
-    clearTimeout(autoOffline);
 
     if (doc.exists) {
       const cloudData = doc.data();
       localStorage.setItem(DB_KEY, JSON.stringify(cloudData));
       updateCloudStatus('online');
 
-      // Si ya está logueado, refrescar todo
       if (currentUser) {
-        showToast("Datos actualizados ☁️", "success");
+        showToast("Datos sincronizados ☁️", "success");
         renderPresupuestos();
         renderProductos();
         renderClientes();
         renderUsuarios();
       }
       return cloudData;
+    } else {
+      // Si el documento no existe, subimos lo que tenemos local para inicializar la nube
+      console.log("Creando documento inicial en la nube...");
+      saveDB(getDB());
+      updateCloudStatus('online');
     }
   } catch (err) {
-    clearTimeout(autoOffline);
     console.error("Error sync:", err);
     updateCloudStatus('error', err.message);
-    // Si falla por offline, intentamos forzar la red nuevamente para la próxima
-    fs.enableNetwork();
   }
   return getDB();
 }
