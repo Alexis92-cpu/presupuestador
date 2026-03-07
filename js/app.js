@@ -27,7 +27,11 @@ try {
   if (typeof firebase !== 'undefined') {
     firebase.initializeApp(firebaseConfig);
     fs = firebase.firestore();
-    console.log("Firebase inicializado ✓");
+
+    // IMPORTANTE: Forzamos la red cada vez que inicia
+    fs.enableNetwork().then(() => console.log("Red forzada ✓"));
+
+    console.log("Firebase inicializado v2.0 ✓");
   }
 } catch (err) {
   console.error("Error Firebase:", err);
@@ -67,8 +71,12 @@ async function syncFromCloud() {
 
   updateCloudStatus('syncing');
 
-  // Usamos onSnapshot para la primera carga, es más robusto que get()
-  fs.collection(DB_COLLECTION).doc(DB_DOC).onSnapshot((doc) => {
+  try {
+    // Intentamos despertar la conexión antes de pedir el dato
+    await fs.enableNetwork();
+
+    const doc = await fs.collection(DB_COLLECTION).doc(DB_DOC).get();
+
     if (doc.exists) {
       const cloudData = doc.data();
       localStorage.setItem(DB_KEY, JSON.stringify(cloudData));
@@ -81,14 +89,13 @@ async function syncFromCloud() {
         renderUsuarios();
       }
     } else {
-      // Si el documento no existe, subimos lo local para crearlo
       saveDB(getDB());
       updateCloudStatus('online');
     }
-  }, (err) => {
+  } catch (err) {
     console.error("Error sync:", err);
     updateCloudStatus('error', err.message);
-  });
+  }
 
   return getDB();
 }
