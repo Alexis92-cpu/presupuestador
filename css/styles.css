@@ -1077,7 +1077,8 @@ body {
 }
 
 .modal-xl {
-  max-width: 860px;
+  max-width: 1200px;
+  /* Aumentado para ver mejor los productos y cuentas */
 }
 
 @keyframes modalIn {
@@ -1371,8 +1372,12 @@ textarea.form-control {
 }
 
 .print-company-sub {
-  font-size: 12px;
+  font-size: 14px;
+  /* Un poco más grande para legibilidad */
   color: #666;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  line-height: 1.2;
 }
 
 .print-budget-title {

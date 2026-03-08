@@ -750,9 +750,11 @@ function previewPresupuesto(id) {
       <div class="print-company">
         <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px">
            <img src="logo.png" alt="Logo" style="height:50px; width:auto">
-           <div class="print-company-name">NETPOINT</div>
+           <div style="display:flex; flex-direction:column">
+               <div class="print-company-name">NETPOINT</div>
+               <div class="print-company-sub" style="margin-top:-2px">soluciones tecnológicas</div>
+           </div>
         </div>
-        <div class="print-company-sub">soluciones tecnologicas</div>
         <div class="print-company-sub" style="margin-top:8px">Fecha: ${formatDate(p.fecha)}</div>
         <div class="print-company-sub">Válido hasta: ${formatDate(validezDate)}</div>
       </div>
