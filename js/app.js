@@ -477,6 +477,7 @@ function openNuevoPresupuesto() {
   document.getElementById('presNumero').value = `PRES-${nextNum}`;
   document.getElementById('presFecha').value = todayISO();
   document.getElementById('presValidez').value = 15;
+  document.getElementById('presFormaPago').value = 'Contado';
   document.getElementById('presObservaciones').value = '';
   document.getElementById('presEstado').value = 'borrador';
   document.getElementById('aplicaIva').checked = false;
@@ -500,6 +501,7 @@ function openEditPresupuesto(id) {
   document.getElementById('presNumero').value = p.numero;
   document.getElementById('presFecha').value = p.fecha;
   document.getElementById('presValidez').value = p.validez;
+  document.getElementById('presFormaPago').value = p.formaPago || 'Contado';
   document.getElementById('presObservaciones').value = p.observaciones || '';
   document.getElementById('presEstado').value = p.estado;
   document.getElementById('aplicaIva').checked = p.aplicaIva || false;
@@ -672,6 +674,7 @@ async function savePresupuesto() {
     numero: document.getElementById('presNumero').value,
     fecha: document.getElementById('presFecha').value,
     validez: parseInt(document.getElementById('presValidez').value) || 15,
+    formaPago: document.getElementById('presFormaPago').value,
     observaciones: document.getElementById('presObservaciones').value,
     estado: document.getElementById('presEstado').value,
     aplicaIva: document.getElementById('aplicaIva').checked,
@@ -760,6 +763,7 @@ function previewPresupuesto(id) {
         </div>
         <div class="print-company-sub" style="margin-top:8px">Fecha: ${formatDate(p.fecha)}</div>
         <div class="print-company-sub">Válido hasta: ${formatDate(validezDate)}</div>
+        <div class="print-company-sub">Forma de pago: ${p.formaPago || 'Contado'}</div>
       </div>
       <div class="print-budget-title">
         <div class="print-budget-num">${p.numero}</div>

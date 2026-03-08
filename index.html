@@ -298,331 +298,344 @@
                         <label>Validez (días)</label>
                         <input type="number" id="presValidez" class="form-control" value="15" min="1" />
                     </div>
-                </div>
-                <div class="form-group">
-                    <label>Observaciones</label>
-                    <textarea id="presObservaciones" class="form-control" rows="2"
-                        placeholder="Observaciones opcionales..."></textarea>
-                </div>
-
-                <!-- Agregar productos -->
-                <div class="item-adder">
-                    <h4>Agregar ítem</h4>
                     <div class="form-row">
                         <div class="form-group flex-grow">
-                            <label>Producto</label>
-                            <select id="itemProducto" class="form-control" onchange="onItemProductoChange()">
-                                <option value="">— Seleccionar —</option>
+                            <label>Forma de Pago</label>
+                            <select id="presFormaPago" class="form-control">
+                                <option value="Contado">Contado</option>
+                                <option value="Transferencia">Transferencia</option>
+                                <option value="Efectivo">Efectivo</option>
+                                <option value="50% Adelanto / 50% Finalización">50% Adelanto / 50% Finalización</option>
+                                <option value="A convenir">A convenir</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Observaciones</label>
+                        <textarea id="presObservaciones" class="form-control" rows="2"
+                            placeholder="Observaciones opcionales..."></textarea>
+                    </div>
+
+                    <!-- Agregar productos -->
+                    <div class="item-adder">
+                        <h4>Agregar ítem</h4>
+                        <div class="form-row">
+                            <div class="form-group flex-grow">
+                                <label>Producto</label>
+                                <select id="itemProducto" class="form-control" onchange="onItemProductoChange()">
+                                    <option value="">— Seleccionar —</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Cantidad</label>
+                                <input type="number" id="itemCantidad" class="form-control" value="1" min="1" />
+                            </div>
+                            <div class="form-group">
+                                <label>Precio unit. (ARS)</label>
+                                <input type="number" id="itemPrecio" class="form-control" placeholder="0" step="0.01" />
+                            </div>
+                            <div class="form-group">
+                                <label>Desc. %</label>
+                                <input type="number" id="itemDesc" class="form-control" value="0" min="0" max="100" />
+                            </div>
+                            <div class="form-group">
+                                <label>Ganancia % (Int.)</label>
+                                <select id="itemGanancia" class="form-control">
+                                    <option value="0">0%</option>
+                                    <option value="5">5%</option>
+                                    <option value="10">10%</option>
+                                    <option value="15">15%</option>
+                                    <option value="20">20%</option>
+                                    <option value="25">25%</option>
+                                    <option value="30">30%</option>
+                                    <option value="35">35%</option>
+                                </select>
+                            </div>
+                            <div class="form-group align-end">
+                                <button class="btn-primary" onclick="addItemToPresupuesto()">+ Agregar</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Items table -->
+                    <div class="table-wrapper">
+                        <table class="data-table" id="presItemsTable">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Producto</th>
+                                    <th>Cant.</th>
+                                    <th>Precio unit.</th>
+                                    <th>Desc. %</th>
+                                    <th>Ganancia %</th>
+                                    <th>Subtotal ARS</th>
+                                    <th>Subtotal USD</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody id="presItemsBody"></tbody>
+                        </table>
+                    </div>
+
+                    <!-- Totales -->
+                    <div class="totales-box">
+                        <div class="totales-row">
+                            <span>Subtotal:</span>
+                            <span id="totalSubtotal">$ 0,00</span>
+                        </div>
+                        <div class="totales-row">
+                            <span>IVA (21%):</span>
+                            <div class="totales-iva">
+                                <input type="checkbox" id="aplicaIva" onchange="calcTotales()" />
+                                <span id="totalIVA">$ 0,00</span>
+                            </div>
+                        </div>
+                        <div class="totales-row total-final">
+                            <span>TOTAL ARS:</span>
+                            <span id="totalARS" class="total-value">$ 0,00</span>
+                        </div>
+                        <div class="totales-row total-usd">
+                            <span>TOTAL USD:</span>
+                            <span id="totalUSDOficial" class="total-value-usd">U$S 0,00</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <select id="presEstado" class="select-filter">
+                        <option value="borrador">Borrador</option>
+                        <option value="enviado">Enviado</option>
+                        <option value="aprobado">Aprobado</option>
+                        <option value="rechazado">Rechazado</option>
+                    </select>
+                    <button class="btn-secondary" onclick="closeModal('modalPresupuesto')">Cancelar</button>
+                    <button class="btn-primary" onclick="savePresupuesto()">💾 Guardar</button>
+                    <button class="btn-success" onclick="previewPresupuestoFromModal()">�️ Previsualizar /
+                        Imprimir</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL: Producto -->
+        <div class="modal-overlay hidden" id="modalProducto">
+            <div class="modal">
+                <div class="modal-header">
+                    <h3 id="modalProductoTitle">Nuevo Producto</h3>
+                    <button class="modal-close" onclick="closeModal('modalProducto')">✕</button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="prodId" />
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Prefijo (Categoría)</label>
+                            <input type="text" id="prodPrefijo" class="form-control" placeholder="Ej: PROD"
+                                oninput="updateNextProdNumber()" style="text-transform: uppercase;" />
+                        </div>
+                        <div class="form-group">
+                            <label>Nro (Auto)</label>
+                            <input type="text" id="prodNumero" class="form-control" placeholder="000" readonly />
+                        </div>
+                        <div class="form-group flex-grow">
+                            <label>Nombre del producto *</label>
+                            <input type="text" id="prodNombre" class="form-control" required
+                                placeholder="Nombre del producto" />
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Categoría</label>
+                            <input type="text" id="prodCategoria" class="form-control" list="categoriasDatalist"
+                                placeholder="Ej: Electrónica" />
+                            <datalist id="categoriasDatalist"></datalist>
+                        </div>
+                        <div class="form-group">
+                            <label>Unidad</label>
+                            <select id="prodUnidad" class="form-control">
+                                <option value="unidad">Unidad</option>
+                                <option value="metros">Metros</option>
+                                <option value="kg">Kilogramos</option>
+                                <option value="litros">Litros</option>
+                                <option value="horas">Horas</option>
+                                <option value="servicio">Servicio</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Precio (ARS) *</label>
+                            <input type="number" id="prodPrecioARS" class="form-control" min="0" step="0.01"
+                                placeholder="0.00" oninput="calcProdUSD()" />
+                        </div>
+                        <div class="form-group">
+                            <label>Precio (USD)</label>
+                            <input type="number" id="prodPrecioUSD" class="form-control" min="0" step="0.01"
+                                placeholder="0.00" oninput="calcProdARS()" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Descripción</label>
+                        <textarea id="prodDescripcion" class="form-control" rows="3"
+                            placeholder="Descripción opcional del producto..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn-secondary" onclick="closeModal('modalProducto')">Cancelar</button>
+                    <button class="btn-primary" onclick="saveProducto()">💾 Guardar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL: Cliente -->
+        <div class="modal-overlay hidden" id="modalCliente">
+            <div class="modal">
+                <div class="modal-header">
+                    <h3 id="modalClienteTitle">Nuevo Cliente</h3>
+                    <button class="modal-close" onclick="closeModal('modalCliente')">✕</button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="cliId" />
+                    <div class="form-row">
+                        <div class="form-group flex-grow">
+                            <label>Nombre / Razón social *</label>
+                            <input type="text" id="cliNombre" class="form-control" required
+                                placeholder="Nombre del cliente" />
+                        </div>
+                        <div class="form-group">
+                            <label>CUIT / DNI</label>
+                            <input type="text" id="cliCuit" class="form-control" placeholder="00-00000000-0" />
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" id="cliEmail" class="form-control" placeholder="ejemplo@email.com" />
+                        </div>
+                        <div class="form-group">
+                            <label>Teléfono</label>
+                            <input type="tel" id="cliTelefono" class="form-control" placeholder="+54 9 11 0000-0000" />
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group flex-grow">
+                            <label>Empresa</label>
+                            <input type="text" id="cliEmpresa" class="form-control"
+                                placeholder="Nombre de la empresa" />
+                        </div>
+                        <div class="form-group">
+                            <label>Condición IVA</label>
+                            <select id="cliIva" class="form-control">
+                                <option value="Consumidor Final">Consumidor Final</option>
+                                <option value="Responsable Inscripto">Responsable Inscripto</option>
+                                <option value="Monotributista">Monotributista</option>
+                                <option value="Exento">Exento</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Dirección</label>
+                        <input type="text" id="cliDireccion" class="form-control" placeholder="Dirección completa" />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn-secondary" onclick="closeModal('modalCliente')">Cancelar</button>
+                    <button class="btn-primary" onclick="saveCliente()">💾 Guardar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL: Usuario -->
+        <div class="modal-overlay hidden" id="modalUsuario">
+            <div class="modal">
+                <div class="modal-header">
+                    <h3 id="modalUsuarioTitle">Nuevo Usuario</h3>
+                    <button class="modal-close" onclick="closeModal('modalUsuario')">✕</button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="usuId" />
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Usuario *</label>
+                            <input type="text" id="usuUsername" class="form-control" placeholder="nombre_usuario" />
+                        </div>
+                        <div class="form-group flex-grow">
+                            <label>Nombre completo</label>
+                            <input type="text" id="usuNombre" class="form-control" placeholder="Nombre y apellido" />
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Contraseña <span id="passRequired">*</span></label>
+                            <input type="password" id="usuPassword" class="form-control" placeholder="Contraseña" />
+                        </div>
+                        <div class="form-group">
+                            <label>Confirmar contraseña</label>
+                            <input type="password" id="usuPasswordConf" class="form-control"
+                                placeholder="Repetir contraseña" />
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Rol</label>
+                            <select id="usuRol" class="form-control">
+                                <option value="admin">Administrador</option>
+                                <option value="vendedor">Vendedor</option>
+                                <option value="viewer">Solo lectura</option>
                             </select>
                         </div>
                         <div class="form-group">
-                            <label>Cantidad</label>
-                            <input type="number" id="itemCantidad" class="form-control" value="1" min="1" />
-                        </div>
-                        <div class="form-group">
-                            <label>Precio unit. (ARS)</label>
-                            <input type="number" id="itemPrecio" class="form-control" placeholder="0" step="0.01" />
-                        </div>
-                        <div class="form-group">
-                            <label>Desc. %</label>
-                            <input type="number" id="itemDesc" class="form-control" value="0" min="0" max="100" />
-                        </div>
-                        <div class="form-group">
-                            <label>Ganancia % (Int.)</label>
-                            <select id="itemGanancia" class="form-control">
-                                <option value="0">0%</option>
-                                <option value="5">5%</option>
-                                <option value="10">10%</option>
-                                <option value="15">15%</option>
-                                <option value="20">20%</option>
-                                <option value="25">25%</option>
-                                <option value="30">30%</option>
-                                <option value="35">35%</option>
+                            <label>Estado</label>
+                            <select id="usuEstado" class="form-control">
+                                <option value="activo">Activo</option>
+                                <option value="inactivo">Inactivo</option>
                             </select>
                         </div>
-                        <div class="form-group align-end">
-                            <button class="btn-primary" onclick="addItemToPresupuesto()">+ Agregar</button>
-                        </div>
                     </div>
                 </div>
-
-                <!-- Items table -->
-                <div class="table-wrapper">
-                    <table class="data-table" id="presItemsTable">
-                        <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>Producto</th>
-                                <th>Cant.</th>
-                                <th>Precio unit.</th>
-                                <th>Desc. %</th>
-                                <th>Ganancia %</th>
-                                <th>Subtotal ARS</th>
-                                <th>Subtotal USD</th>
-                                <th></th>
-                            </tr>
-                        </thead>
-                        <tbody id="presItemsBody"></tbody>
-                    </table>
+                <div class="modal-footer">
+                    <button class="btn-secondary" onclick="closeModal('modalUsuario')">Cancelar</button>
+                    <button class="btn-primary" onclick="saveUsuario()">💾 Guardar</button>
                 </div>
-
-                <!-- Totales -->
-                <div class="totales-box">
-                    <div class="totales-row">
-                        <span>Subtotal:</span>
-                        <span id="totalSubtotal">$ 0,00</span>
-                    </div>
-                    <div class="totales-row">
-                        <span>IVA (21%):</span>
-                        <div class="totales-iva">
-                            <input type="checkbox" id="aplicaIva" onchange="calcTotales()" />
-                            <span id="totalIVA">$ 0,00</span>
-                        </div>
-                    </div>
-                    <div class="totales-row total-final">
-                        <span>TOTAL ARS:</span>
-                        <span id="totalARS" class="total-value">$ 0,00</span>
-                    </div>
-                    <div class="totales-row total-usd">
-                        <span>TOTAL USD:</span>
-                        <span id="totalUSDOficial" class="total-value-usd">U$S 0,00</span>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <select id="presEstado" class="select-filter">
-                    <option value="borrador">Borrador</option>
-                    <option value="enviado">Enviado</option>
-                    <option value="aprobado">Aprobado</option>
-                    <option value="rechazado">Rechazado</option>
-                </select>
-                <button class="btn-secondary" onclick="closeModal('modalPresupuesto')">Cancelar</button>
-                <button class="btn-primary" onclick="savePresupuesto()">💾 Guardar</button>
-                <button class="btn-success" onclick="previewPresupuestoFromModal()">�️ Previsualizar / Imprimir</button>
             </div>
         </div>
-    </div>
 
-    <!-- MODAL: Producto -->
-    <div class="modal-overlay hidden" id="modalProducto">
-        <div class="modal">
-            <div class="modal-header">
-                <h3 id="modalProductoTitle">Nuevo Producto</h3>
-                <button class="modal-close" onclick="closeModal('modalProducto')">✕</button>
-            </div>
-            <div class="modal-body">
-                <input type="hidden" id="prodId" />
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Prefijo (Categoría)</label>
-                        <input type="text" id="prodPrefijo" class="form-control" placeholder="Ej: PROD"
-                            oninput="updateNextProdNumber()" style="text-transform: uppercase;" />
-                    </div>
-                    <div class="form-group">
-                        <label>Nro (Auto)</label>
-                        <input type="text" id="prodNumero" class="form-control" placeholder="000" readonly />
-                    </div>
-                    <div class="form-group flex-grow">
-                        <label>Nombre del producto *</label>
-                        <input type="text" id="prodNombre" class="form-control" required
-                            placeholder="Nombre del producto" />
-                    </div>
+        <!-- MODAL: Ver/Imprimir Presupuesto -->
+        <div class="modal-overlay hidden" id="modalPrint">
+            <div class="modal modal-xl">
+                <div class="modal-header no-print">
+                    <h3>Vista previa del presupuesto</h3>
+                    <button class="modal-close" onclick="closeModal('modalPrint')">✕</button>
                 </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Categoría</label>
-                        <input type="text" id="prodCategoria" class="form-control" list="categoriasDatalist"
-                            placeholder="Ej: Electrónica" />
-                        <datalist id="categoriasDatalist"></datalist>
-                    </div>
-                    <div class="form-group">
-                        <label>Unidad</label>
-                        <select id="prodUnidad" class="form-control">
-                            <option value="unidad">Unidad</option>
-                            <option value="metros">Metros</option>
-                            <option value="kg">Kilogramos</option>
-                            <option value="litros">Litros</option>
-                            <option value="horas">Horas</option>
-                            <option value="servicio">Servicio</option>
-                        </select>
-                    </div>
+                <div class="modal-body" id="printContent"></div>
+                <div class="modal-footer no-print">
+                    <button class="btn-secondary" onclick="closeModal('modalPrint')">Cerrar</button>
+                    <button class="btn-primary" onclick="downloadPDF()">📥 Descargar PDF</button>
+                    <button class="btn-success" onclick="window.print()">🖨️ Imprimir</button>
                 </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Precio (ARS) *</label>
-                        <input type="number" id="prodPrecioARS" class="form-control" min="0" step="0.01"
-                            placeholder="0.00" oninput="calcProdUSD()" />
-                    </div>
-                    <div class="form-group">
-                        <label>Precio (USD)</label>
-                        <input type="number" id="prodPrecioUSD" class="form-control" min="0" step="0.01"
-                            placeholder="0.00" oninput="calcProdARS()" />
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>Descripción</label>
-                    <textarea id="prodDescripcion" class="form-control" rows="3"
-                        placeholder="Descripción opcional del producto..."></textarea>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn-secondary" onclick="closeModal('modalProducto')">Cancelar</button>
-                <button class="btn-primary" onclick="saveProducto()">💾 Guardar</button>
             </div>
         </div>
-    </div>
 
-    <!-- MODAL: Cliente -->
-    <div class="modal-overlay hidden" id="modalCliente">
-        <div class="modal">
-            <div class="modal-header">
-                <h3 id="modalClienteTitle">Nuevo Cliente</h3>
-                <button class="modal-close" onclick="closeModal('modalCliente')">✕</button>
-            </div>
-            <div class="modal-body">
-                <input type="hidden" id="cliId" />
-                <div class="form-row">
-                    <div class="form-group flex-grow">
-                        <label>Nombre / Razón social *</label>
-                        <input type="text" id="cliNombre" class="form-control" required
-                            placeholder="Nombre del cliente" />
-                    </div>
-                    <div class="form-group">
-                        <label>CUIT / DNI</label>
-                        <input type="text" id="cliCuit" class="form-control" placeholder="00-00000000-0" />
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Email</label>
-                        <input type="email" id="cliEmail" class="form-control" placeholder="ejemplo@email.com" />
-                    </div>
-                    <div class="form-group">
-                        <label>Teléfono</label>
-                        <input type="tel" id="cliTelefono" class="form-control" placeholder="+54 9 11 0000-0000" />
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group flex-grow">
-                        <label>Empresa</label>
-                        <input type="text" id="cliEmpresa" class="form-control" placeholder="Nombre de la empresa" />
-                    </div>
-                    <div class="form-group">
-                        <label>Condición IVA</label>
-                        <select id="cliIva" class="form-control">
-                            <option value="Consumidor Final">Consumidor Final</option>
-                            <option value="Responsable Inscripto">Responsable Inscripto</option>
-                            <option value="Monotributista">Monotributista</option>
-                            <option value="Exento">Exento</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>Dirección</label>
-                    <input type="text" id="cliDireccion" class="form-control" placeholder="Dirección completa" />
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn-secondary" onclick="closeModal('modalCliente')">Cancelar</button>
-                <button class="btn-primary" onclick="saveCliente()">💾 Guardar</button>
-            </div>
-        </div>
-    </div>
+        <!-- TOAST NOTIFICATION -->
+        <div id="toastContainer" class="toast-container"></div>
 
-    <!-- MODAL: Usuario -->
-    <div class="modal-overlay hidden" id="modalUsuario">
-        <div class="modal">
-            <div class="modal-header">
-                <h3 id="modalUsuarioTitle">Nuevo Usuario</h3>
-                <button class="modal-close" onclick="closeModal('modalUsuario')">✕</button>
-            </div>
-            <div class="modal-body">
-                <input type="hidden" id="usuId" />
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Usuario *</label>
-                        <input type="text" id="usuUsername" class="form-control" placeholder="nombre_usuario" />
-                    </div>
-                    <div class="form-group flex-grow">
-                        <label>Nombre completo</label>
-                        <input type="text" id="usuNombre" class="form-control" placeholder="Nombre y apellido" />
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Contraseña <span id="passRequired">*</span></label>
-                        <input type="password" id="usuPassword" class="form-control" placeholder="Contraseña" />
-                    </div>
-                    <div class="form-group">
-                        <label>Confirmar contraseña</label>
-                        <input type="password" id="usuPasswordConf" class="form-control"
-                            placeholder="Repetir contraseña" />
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Rol</label>
-                        <select id="usuRol" class="form-control">
-                            <option value="admin">Administrador</option>
-                            <option value="vendedor">Vendedor</option>
-                            <option value="viewer">Solo lectura</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Estado</label>
-                        <select id="usuEstado" class="form-control">
-                            <option value="activo">Activo</option>
-                            <option value="inactivo">Inactivo</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn-secondary" onclick="closeModal('modalUsuario')">Cancelar</button>
-                <button class="btn-primary" onclick="saveUsuario()">💾 Guardar</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL: Ver/Imprimir Presupuesto -->
-    <div class="modal-overlay hidden" id="modalPrint">
-        <div class="modal modal-xl">
-            <div class="modal-header no-print">
-                <h3>Vista previa del presupuesto</h3>
-                <button class="modal-close" onclick="closeModal('modalPrint')">✕</button>
-            </div>
-            <div class="modal-body" id="printContent"></div>
-            <div class="modal-footer no-print">
-                <button class="btn-secondary" onclick="closeModal('modalPrint')">Cerrar</button>
-                <button class="btn-primary" onclick="downloadPDF()">📥 Descargar PDF</button>
-                <button class="btn-success" onclick="window.print()">🖨️ Imprimir</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- TOAST NOTIFICATION -->
-    <div id="toastContainer" class="toast-container"></div>
-
-    <script>
-        function forceResetApp() {
-            if (confirm('¿Eliminar datos locales y reintentar? (No perderás lo que está en la nube)')) {
-                localStorage.clear();
-                sessionStorage.clear();
-                location.reload();
+        <script>
+            function forceResetApp() {
+                if (confirm('¿Eliminar datos locales y reintentar? (No perderás lo que está en la nube)')) {
+                    localStorage.clear();
+                    sessionStorage.clear();
+                    location.reload();
+                }
             }
-        }
-    </script>
-    <div style="text-align:center; margin-top: 10px;">
-        <button onclick="forceResetApp()"
-            style="background:transparent; border:none; color:var(--text-muted); font-size:10px; cursor:pointer; text-decoration:underline;">
-            Problemas al entrar? Haz clic aquí
-        </button>
-    </div>
+        </script>
+        <div style="text-align:center; margin-top: 10px;">
+            <button onclick="forceResetApp()"
+                style="background:transparent; border:none; color:var(--text-muted); font-size:10px; cursor:pointer; text-decoration:underline;">
+                Problemas al entrar? Haz clic aquí
+            </button>
+        </div>
 
-    <!-- Supabase SDK v2 -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.42.0/dist/umd/supabase.js"></script>
+        <!-- Supabase SDK v2 -->
+        <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.42.0/dist/umd/supabase.js"></script>
 
-    <script src="js/app.js?v=3.5"></script>
+        <script src="js/app.js?v=3.5"></script>
 </body>
 
 </html>
