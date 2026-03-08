@@ -910,7 +910,7 @@ function openProductoModal(id = null) {
   document.getElementById('prodDescripcion').value = p?.descripcion || '';
 
   if (p?.precioARS && dollarRates.oficial > 0) {
-    document.getElementById('prodPrecioUSD').value = fmt(toUSD(p.precioARS, dollarRates.oficial));
+    document.getElementById('prodPrecioUSD').value = (p.precioARS / dollarRates.oficial).toFixed(2);
   } else {
     document.getElementById('prodPrecioUSD').value = '';
   }
@@ -920,15 +920,53 @@ function openProductoModal(id = null) {
 function calcProdUSD() {
   const ars = parseFloat(document.getElementById('prodPrecioARS').value) || 0;
   if (dollarRates.oficial > 0 && ars > 0) {
-    document.getElementById('prodPrecioUSD').value = fmt(toUSD(ars, dollarRates.oficial));
+    document.getElementById('prodPrecioUSD').value = (ars / dollarRates.oficial).toFixed(2);
   }
 }
 
 function calcProdARS() {
   const usd = parseFloat(document.getElementById('prodPrecioUSD').value) || 0;
   if (dollarRates.oficial > 0 && usd > 0) {
-    document.getElementById('prodPrecioARS').value = fmt(usd * dollarRates.oficial, 2);
+    document.getElementById('prodPrecioARS').value = (usd * dollarRates.oficial).toFixed(2);
   }
+}
+
+function autoGenerateCode() {
+  const input = document.getElementById('prodCodigo');
+  let prefix = input.value.trim().toUpperCase();
+  if (!prefix) {
+    showToast('Escribe primero el prefijo (ej: PROD-)', 'info');
+    return;
+  }
+
+  // Si no tiene guión ni punto, le agregamos un guión
+  if (!prefix.includes('-') && !prefix.includes('.')) {
+    prefix += '-';
+    input.value = prefix;
+  }
+
+  const db = getDB();
+  const prods = db.productos || [];
+
+  // Escapar caracteres para regex
+  const escapedPrefix = prefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const regex = new RegExp(`^${escapedPrefix}(\\d+)$`, 'i');
+
+  let max = 0;
+  prods.forEach(p => {
+    if (p.codigo) {
+      const match = p.codigo.match(regex);
+      if (match) {
+        const num = parseInt(match[1]);
+        if (num > max) max = num;
+      }
+    }
+  });
+
+  const next = max + 1;
+  const nextStr = next.toString().padStart(3, '0');
+  input.value = `${prefix}${nextStr}`;
+  showToast(`Sugerencia: ${prefix}${nextStr}`, 'info');
 }
 
 function saveProducto() {

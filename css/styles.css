@@ -1225,6 +1225,21 @@ textarea.form-control {
   align-items: flex-end !important;
 }
 
+.input-with-button {
+  display: flex;
+  gap: 8px;
+}
+
+.input-with-button .form-control {
+  flex: 1;
+}
+
+.input-with-button .btn-icon {
+  height: 38px;
+  width: 38px;
+  flex-shrink: 0;
+}
+
 /* ===================================================
    PRESUPUESTO DETAIL
    =================================================== */

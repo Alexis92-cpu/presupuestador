@@ -415,7 +415,10 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label>Código</label>
-                        <input type="text" id="prodCodigo" class="form-control" placeholder="Ej: PROD-001" />
+                        <div class="input-with-button">
+                            <input type="text" id="prodCodigo" class="form-control" placeholder="Ej: PROD-" />
+                            <button class="btn-icon" title="Generar número" onclick="autoGenerateCode()">⚡</button>
+                        </div>
                     </div>
                     <div class="form-group flex-grow">
                         <label>Nombre del producto *</label>
@@ -449,9 +452,9 @@
                             placeholder="0.00" oninput="calcProdUSD()" />
                     </div>
                     <div class="form-group">
-                        <label>Precio (USD) — referencia</label>
+                        <label>Precio (USD)</label>
                         <input type="number" id="prodPrecioUSD" class="form-control" min="0" step="0.01"
-                            placeholder="auto" oninput="calcProdARS()" />
+                            placeholder="0.00" oninput="calcProdARS()" />
                     </div>
                 </div>
                 <div class="form-group">
