@@ -34,10 +34,16 @@ function getDB() {
 }
 
 async function saveDB(db) {
+  if (!db || !db.usuarios) return; // Protección: No guardar si la DB está corrupta
+
+  // Guardar localmente
   localStorage.setItem(DB_KEY, JSON.stringify(db));
+
   const client = initSupabase();
   if (client) {
     try {
+      // Añadimos una marca de tiempo para saber qué versión es la más nueva
+      db.lastUpdate = Date.now();
       await client.from(TABLE_NAME).upsert({ id: DATA_ID, data: db });
     } catch (e) { console.error("Error nube:", e); }
   }
@@ -45,8 +51,6 @@ async function saveDB(db) {
 
 async function syncFromCloud() {
   const client = initSupabase();
-
-  // Si no hay librería, avisamos y salimos (el modo local sigue funcionando)
   if (!client) {
     console.warn("Motor de red no disponible. Operando en modo local.");
     updateCloudStatus('offline');
@@ -66,22 +70,38 @@ async function syncFromCloud() {
 
     if (error && error.code !== 'PGRST116') throw error;
 
+    const localData = getDB();
+
     if (result && result.data) {
-      localStorage.setItem(DB_KEY, JSON.stringify(result.data));
-      updateCloudStatus('online');
-      if (currentUser) {
-        renderPresupuestos();
-        renderProductos();
-        renderClientes();
-        renderUsuarios();
+      const cloudData = result.data;
+
+      // Lógica de Fusión (Merge): 
+      // Solo sobreescribimos si la nube es más nueva o si lo local está vacío
+      if (!localData.initialized || (cloudData.lastUpdate > (localData.lastUpdate || 0))) {
+        localStorage.setItem(DB_KEY, JSON.stringify(cloudData));
+        updateCloudStatus('online');
+        if (currentUser) {
+          renderPresupuestos();
+          renderProductos();
+          renderClientes();
+          renderUsuarios();
+        }
+        return cloudData;
+      } else {
+        // Si lo local es más nuevo, lo subimos a la nube para actualizarla
+        console.log("Lo local es más nuevo, actualizando nube...");
+        saveDB(localData);
+        updateCloudStatus('online');
       }
-      return result.data;
     } else {
-      await saveDB(getDB());
+      // Nube vacía, subimos lo que tenemos
+      if (localData.initialized) {
+        await saveDB(localData);
+      }
       updateCloudStatus('online');
     }
   } catch (err) {
-    console.error("Error de sincronización:", err);
+    console.error("Error sync:", err);
     updateCloudStatus('error', err.message);
     const notice = document.getElementById('offlineNotice');
     if (notice) notice.classList.remove('hidden');
@@ -116,13 +136,18 @@ function startRealtime() {
     .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: TABLE_NAME }, payload => {
       if (payload.new && payload.new.id === DATA_ID) {
         const cloudData = payload.new.data;
-        localStorage.setItem(DB_KEY, JSON.stringify(cloudData));
-        if (currentUser) {
-          showToast("Actualizado ⚡", "info");
-          renderPresupuestos();
-          renderProductos();
-          renderClientes();
-          renderUsuarios();
+        const localData = getDB();
+
+        // Solo actualizar si la nube tiene cambios que no tenemos
+        if (cloudData.lastUpdate > (localData.lastUpdate || 0)) {
+          localStorage.setItem(DB_KEY, JSON.stringify(cloudData));
+          if (currentUser) {
+            showToast("Actualizado ⚡", "info");
+            renderPresupuestos();
+            renderProductos();
+            renderClientes();
+            renderUsuarios();
+          }
         }
       }
     }).subscribe();
