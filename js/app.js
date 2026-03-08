@@ -75,9 +75,10 @@ async function syncFromCloud() {
     if (result && result.data) {
       const cloudData = result.data;
 
-      // Lógica de Fusión (Merge): 
-      // Solo sobreescribimos si la nube es más nueva o si lo local está vacío
-      if (!localData.initialized || (cloudData.lastUpdate > (localData.lastUpdate || 0))) {
+      // Lógica de Fusión Segura:
+      // Si lo local NO tiene lastUpdate (es virgen) O la nube es más nueva
+      if (!localData.lastUpdate || (cloudData.lastUpdate > localData.lastUpdate)) {
+        console.log("Descargando datos reales de la nube...");
         localStorage.setItem(DB_KEY, JSON.stringify(cloudData));
         updateCloudStatus('online');
         if (currentUser) {
@@ -87,15 +88,17 @@ async function syncFromCloud() {
           renderUsuarios();
         }
         return cloudData;
-      } else {
-        // Si lo local es más nuevo, lo subimos a la nube para actualizarla
-        console.log("Lo local es más nuevo, actualizando nube...");
-        saveDB(localData);
+      } else if (localData.lastUpdate > cloudData.lastUpdate) {
+        // Solo subimos a la nube si lo local es explícitamente más nuevo
+        console.log("Subiendo cambios locales más nuevos...");
+        await saveDB(localData);
         updateCloudStatus('online');
       }
     } else {
-      // Nube vacía, subimos lo que tenemos
-      if (localData.initialized) {
+      // Nube vacía: solo subimos si tenemos datos locales que NO sean los dummy iniciales
+      // Detectamos esto si localData.lastUpdate existe
+      if (localData.lastUpdate) {
+        console.log("Nube vacía, inicializando con tus datos locales...");
         await saveDB(localData);
       }
       updateCloudStatus('online');
@@ -103,8 +106,6 @@ async function syncFromCloud() {
   } catch (err) {
     console.error("Error sync:", err);
     updateCloudStatus('error', err.message);
-    const notice = document.getElementById('offlineNotice');
-    if (notice) notice.classList.remove('hidden');
   }
   return getDB();
 }
@@ -197,7 +198,9 @@ function initDB() {
     ];
     db.nextId = { presupuestos: 2, productos: 6, clientes: 3, usuarios: 3 };
     db.initialized = true;
-    saveDB(db);
+    // IMPORTANTE: Ya no llamamos a saveDB(db) aquí para no sobreescribir la nube 
+    // con datos dummy al abrir una pestaña incógnito.
+    localStorage.setItem(DB_KEY, JSON.stringify(db));
   }
   return db;
 }
