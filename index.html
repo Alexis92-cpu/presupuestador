@@ -414,11 +414,13 @@
                 <input type="hidden" id="prodId" />
                 <div class="form-row">
                     <div class="form-group">
-                        <label>Código</label>
-                        <div class="input-with-button">
-                            <input type="text" id="prodCodigo" class="form-control" placeholder="Ej: PROD-" />
-                            <button class="btn-icon" title="Generar número" onclick="autoGenerateCode()">⚡</button>
-                        </div>
+                        <label>Prefijo (Categoría)</label>
+                        <input type="text" id="prodPrefijo" class="form-control" placeholder="Ej: PROD"
+                            oninput="updateNextProdNumber()" style="text-transform: uppercase;" />
+                    </div>
+                    <div class="form-group">
+                        <label>Nro (Auto)</label>
+                        <input type="text" id="prodNumero" class="form-control" placeholder="000" readonly />
                     </div>
                     <div class="form-group flex-grow">
                         <label>Nombre del producto *</label>

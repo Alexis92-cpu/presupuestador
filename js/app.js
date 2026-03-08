@@ -902,7 +902,12 @@ function openProductoModal(id = null) {
 
   document.getElementById('modalProductoTitle').textContent = p ? 'Editar Producto' : 'Nuevo Producto';
   document.getElementById('prodId').value = p?.id || '';
-  document.getElementById('prodCodigo').value = p?.codigo || '';
+
+  // Dividir el código en prefijo y número si existe
+  const parts = (p?.codigo || '').split('-');
+  document.getElementById('prodPrefijo').value = parts[0] || '';
+  document.getElementById('prodNumero').value = parts[1] || '';
+
   document.getElementById('prodNombre').value = p?.nombre || '';
   document.getElementById('prodCategoria').value = p?.categoria || '';
   document.getElementById('prodUnidad').value = p?.unidad || 'unidad';
@@ -931,18 +936,11 @@ function calcProdARS() {
   }
 }
 
-function autoGenerateCode() {
-  const input = document.getElementById('prodCodigo');
-  let prefix = input.value.trim().toUpperCase();
+function updateNextProdNumber() {
+  const prefix = document.getElementById('prodPrefijo').value.trim().toUpperCase();
   if (!prefix) {
-    showToast('Escribe primero el prefijo (ej: PROD-)', 'info');
+    document.getElementById('prodNumero').value = '';
     return;
-  }
-
-  // Si no tiene guión ni punto, le agregamos un guión
-  if (!prefix.includes('-') && !prefix.includes('.')) {
-    prefix += '-';
-    input.value = prefix;
   }
 
   const db = getDB();
@@ -950,7 +948,7 @@ function autoGenerateCode() {
 
   // Escapar caracteres para regex
   const escapedPrefix = prefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const regex = new RegExp(`^${escapedPrefix}(\\d+)$`, 'i');
+  const regex = new RegExp(`^${escapedPrefix}-(\\d+)$`, 'i');
 
   let max = 0;
   prods.forEach(p => {
@@ -964,9 +962,7 @@ function autoGenerateCode() {
   });
 
   const next = max + 1;
-  const nextStr = next.toString().padStart(3, '0');
-  input.value = `${prefix}${nextStr}`;
-  showToast(`Sugerencia: ${prefix}${nextStr}`, 'info');
+  document.getElementById('prodNumero').value = next.toString().padStart(3, '0');
 }
 
 function saveProducto() {
@@ -976,8 +972,12 @@ function saveProducto() {
   if (!nombre) { showToast('El nombre es obligatorio', 'error'); return; }
   if (precioARS <= 0) { showToast('Ingresá un precio válido', 'error'); return; }
 
+  const prefix = document.getElementById('prodPrefijo').value.trim().toUpperCase();
+  const num = document.getElementById('prodNumero').value.trim();
+  const codigo = num ? `${prefix}-${num}` : prefix;
+
   const data = {
-    codigo: document.getElementById('prodCodigo').value.trim(),
+    codigo,
     nombre,
     categoria: document.getElementById('prodCategoria').value.trim(),
     unidad: document.getElementById('prodUnidad').value,
