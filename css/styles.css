@@ -1474,6 +1474,8 @@ textarea.form-control {
 /* ===================================================
    RESPONSIVE
    =================================================== */
+
+/* ---------- Tablet y escritorio (≥768px) ---------- */
 @media (min-width: 768px) {
   .user-name {
     display: block;
@@ -1484,6 +1486,7 @@ textarea.form-control {
   }
 }
 
+/* ---------- Escritorio grande (≥1024px) ---------- */
 @media (min-width: 1024px) {
   .sidebar {
     transform: translateX(0);
@@ -1498,41 +1501,404 @@ textarea.form-control {
   }
 }
 
+/* ---------- Tablet (≤768px) ---------- */
+@media (max-width: 768px) {
+  .topbar {
+    padding: 0 12px;
+    gap: 8px;
+  }
+
+  .topbar-center {
+    display: none;
+    /* Ocultar widget de dólar en tablet si no entra */
+  }
+
+  .modal {
+    max-width: 95vw !important;
+    border-radius: var(--radius);
+    margin: 8px;
+  }
+
+  .modal-xl {
+    max-width: 98vw !important;
+  }
+
+  .modal-overlay {
+    padding: 8px;
+  }
+
+  .modal-body {
+    padding: 16px;
+  }
+
+  .modal-header {
+    padding: 14px 16px;
+  }
+
+  .modal-footer {
+    padding: 12px 16px;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .modal-footer button,
+  .modal-footer select {
+    width: 100%;
+  }
+
+  .form-row {
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .form-row .form-group {
+    min-width: 100%;
+    margin-bottom: 12px;
+  }
+
+  .section-header {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .search-box {
+    min-width: unset;
+    width: 100%;
+  }
+
+  .card-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .main-content {
+    padding: 20px 12px;
+  }
+
+  /* Tablas horizontales con scroll */
+  .table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .data-table {
+    min-width: 600px;
+  }
+
+  .data-table th,
+  .data-table td {
+    padding: 10px 10px;
+    font-size: 13px;
+    white-space: nowrap;
+  }
+
+  /* Totales */
+  .totales-box {
+    padding: 14px;
+  }
+
+  .totales-row {
+    font-size: 13px;
+  }
+
+  .totales-row.total-final {
+    font-size: 16px;
+  }
+
+  .total-value {
+    font-size: 18px;
+  }
+
+  /* Item adder */
+  .item-adder {
+    padding: 14px;
+  }
+}
+
+/* ---------- Celular (≤600px) ---------- */
 @media (max-width: 600px) {
+  :root {
+    --topbar-h: 56px;
+  }
+
   .login-card {
-    padding: 32px 20px;
+    padding: 24px 16px;
+    margin: 0 8px;
+  }
+
+  .main-logo-img {
+    max-height: 70px !important;
+  }
+
+  .login-title {
+    font-size: 20px;
+  }
+
+  .login-hint {
+    font-size: 11px;
   }
 
   .section-title {
     font-size: 20px;
   }
 
+  .section-desc {
+    font-size: 12px;
+  }
+
   .topbar {
-    padding: 0 14px;
+    padding: 0 10px;
+    gap: 6px;
   }
 
   .brand-name {
     display: none;
   }
 
-  .dollar-widget {
-    padding: 4px 10px;
+  .topbar-logo-img {
+    height: 26px;
   }
 
-  .dollar-rates {
-    gap: 5px;
+  .topbar-center {
+    display: none;
   }
 
-  .modal {
-    border-radius: 12px;
+  .user-badge {
+    gap: 4px;
+  }
+
+  .user-avatar {
+    width: 30px;
+    height: 30px;
+    font-size: 11px;
+  }
+
+  .btn-logout {
+    width: 30px;
+    height: 30px;
+    font-size: 14px;
   }
 
   .main-content {
-    padding: 20px 14px;
+    padding: 16px 10px;
   }
 
+  /* Sidebar */
+  .sidebar {
+    width: 80vw;
+    max-width: 280px;
+  }
+
+  /* Modal */
+  .modal {
+    max-width: 100vw !important;
+    border-radius: 14px 14px 0 0;
+    max-height: 95vh;
+  }
+
+  .modal-xl {
+    max-width: 100vw !important;
+  }
+
+  .modal-overlay {
+    padding: 0;
+    align-items: flex-end;
+  }
+
+  .modal-body {
+    padding: 14px;
+  }
+
+  .modal-header {
+    padding: 12px 14px;
+  }
+
+  .modal-header h3 {
+    font-size: 15px;
+  }
+
+  .modal-footer {
+    padding: 10px 14px;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .modal-footer button,
+  .modal-footer select {
+    width: 100%;
+    padding: 10px;
+  }
+
+  /* Forms */
+  .form-row {
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .form-row .form-group {
+    min-width: 100%;
+    margin-bottom: 10px;
+  }
+
+  .form-control {
+    padding: 10px 12px;
+    font-size: 16px;
+    /* evita zoom en iOS */
+  }
+
+  .form-group label {
+    font-size: 11px;
+  }
+
+  /* Buttons */
+  .btn-primary,
+  .btn-secondary,
+  .btn-success {
+    padding: 10px 14px;
+    font-size: 13px;
+    width: 100%;
+  }
+
+  /* Cards */
   .card-grid {
     grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .budget-card {
+    padding: 16px;
+  }
+
+  .card-client {
+    font-size: 14px;
+  }
+
+  .card-total-ars {
+    font-size: 16px;
+  }
+
+  .card-actions {
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .card-actions button {
+    padding: 9px;
+    font-size: 13px;
+  }
+
+  /* Toolbar */
+  .toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .search-box {
+    min-width: unset;
+    width: 100%;
+  }
+
+  .select-filter {
+    width: 100%;
+  }
+
+  /* Data tables */
+  .table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: var(--radius-sm);
+  }
+
+  .data-table {
+    min-width: 500px;
+  }
+
+  .data-table th,
+  .data-table td {
+    padding: 8px 8px;
+    font-size: 12px;
+  }
+
+  /* Totales */
+  .totales-box {
+    padding: 12px;
+  }
+
+  .totales-row {
+    font-size: 12px;
+    padding: 6px 0;
+  }
+
+  .totales-row.total-final {
+    font-size: 15px;
+  }
+
+  .total-value {
+    font-size: 17px;
+  }
+
+  .total-value-usd {
+    font-size: 14px;
+  }
+
+  /* Item adder */
+  .item-adder {
+    padding: 12px;
+  }
+
+  .item-adder h4 {
+    font-size: 12px;
+    margin-bottom: 10px;
+  }
+
+  /* Print preview responsive */
+  .print-doc {
+    padding: 16px;
+  }
+
+  .print-header {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .print-budget-title {
+    text-align: left;
+  }
+
+  .print-budget-num {
+    font-size: 22px;
+  }
+
+  .print-company-name {
+    font-size: 20px;
+  }
+
+  .print-table th,
+  .print-table td {
+    padding: 6px 6px;
+    font-size: 11px;
+  }
+
+  .print-totales {
+    float: none;
+    width: 100%;
+  }
+
+  /* Cloud status */
+  .cloud-status {
+    font-size: 10px;
+    padding: 4px;
+  }
+
+  /* Input with button (código) */
+  .input-with-button {
+    flex-direction: row;
   }
 }
 
