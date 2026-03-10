@@ -54,19 +54,24 @@ async function syncFromCloud() {
   if (!client) {
     console.warn("Motor de red no disponible. Operando en modo local.");
     updateCloudStatus('offline');
-    const notice = document.getElementById('offlineNotice');
-    if (notice) notice.classList.remove('hidden');
     return getDB();
   }
 
   updateCloudStatus('syncing');
 
   try {
-    const { data: result, error } = await client
+    // Timeout de 10 segundos para no quedarse buscando eternamente
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('Timeout: la nube no responde')), 10000)
+    );
+
+    const fetchPromise = client
       .from(TABLE_NAME)
       .select('data')
       .eq('id', DATA_ID)
       .single();
+
+    const { data: result, error } = await Promise.race([fetchPromise, timeoutPromise]);
 
     if (error && error.code !== 'PGRST116') throw error;
 
@@ -76,7 +81,6 @@ async function syncFromCloud() {
       const cloudData = result.data;
 
       // Lógica de Fusión Segura:
-      // Si lo local NO tiene lastUpdate (es virgen) O la nube es más nueva
       if (!localData.lastUpdate || (cloudData.lastUpdate > localData.lastUpdate)) {
         console.log("Descargando datos reales de la nube...");
         localStorage.setItem(DB_KEY, JSON.stringify(cloudData));
@@ -89,14 +93,15 @@ async function syncFromCloud() {
         }
         return cloudData;
       } else if (localData.lastUpdate > cloudData.lastUpdate) {
-        // Solo subimos a la nube si lo local es explícitamente más nuevo
         console.log("Subiendo cambios locales más nuevos...");
         await saveDB(localData);
         updateCloudStatus('online');
+      } else {
+        // Mismo timestamp, ya están sincronizados
+        updateCloudStatus('online');
       }
     } else {
-      // Nube vacía: solo subimos si tenemos datos locales que NO sean los dummy iniciales
-      // Detectamos esto si localData.lastUpdate existe
+      // Nube vacía
       if (localData.lastUpdate) {
         console.log("Nube vacía, inicializando con tus datos locales...");
         await saveDB(localData);
@@ -106,6 +111,11 @@ async function syncFromCloud() {
   } catch (err) {
     console.error("Error sync:", err);
     updateCloudStatus('error', err.message);
+    // Intentar reconectar en 30 segundos
+    setTimeout(() => {
+      console.log("Reintentando conexión con la nube...");
+      syncFromCloud();
+    }, 30000);
   }
   return getDB();
 }
