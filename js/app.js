@@ -509,6 +509,7 @@ function openEditPresupuesto(id) {
 
   document.getElementById('modalPresupuestoTitle').textContent = `Editar ${p.numero}`;
   document.getElementById('presNumero').value = p.numero;
+  document.getElementById('presClienteBusqueda').value = p.clienteNombre || '';
   document.getElementById('presFecha').value = p.fecha;
   document.getElementById('presValidez').value = p.validez;
   document.getElementById('presFormaPago').value = p.formaPago || 'Contado';
