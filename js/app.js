@@ -777,17 +777,18 @@ function previewPresupuestoFromModal() {
 
   // Guardar local + nube (sin await, no bloqueamos)
   saveDB(db);
-  renderPresupuestos();
 
   const previewId = editingPresupuestoId || (db.presupuestos?.slice(-1)[0]?.id);
 
   // Cerrar el editor y abrir la preview
   closeModal('modalPresupuesto');
 
-  // Pequeño delay para que el DOM se actualice antes de abrir el siguiente modal
-  setTimeout(() => {
+  // Delay para que el DOM procese el cierre del modal antes de abrir otro
+  setTimeout(function () {
+    console.log("Abriendo preview para ID:", previewId);
+    renderPresupuestos();
     if (previewId) previewPresupuesto(previewId);
-  }, 100);
+  }, 250);
 }
 
 function previewPresupuesto(id) {
