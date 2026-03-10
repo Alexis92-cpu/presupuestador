@@ -629,11 +629,11 @@ function calcTotales() {
 
 function updatePresupuestoCliente() { }
 
-async function savePresupuesto() {
+async function savePresupuesto(skipClose = false) {
   const db = getDB();
   const clienteNombreInput = document.getElementById('presClienteBusqueda').value.trim();
 
-  if (!clienteNombreInput) { showToast('Ingrese el nombre del cliente', 'error'); return; }
+  if (!clienteNombreInput) { showToast('Ingrese el nombre del cliente', 'error'); return false; }
 
   let cliente = (db.clientes || []).find(c => c.nombre.toLowerCase() === clienteNombreInput.toLowerCase());
   let clienteId = cliente ? cliente.id : null;
@@ -662,11 +662,11 @@ async function savePresupuesto() {
       renderClientes(); // Actualizar lista de clientes si está abierta
     } else {
       showToast('Debe seleccionar un cliente existente o permitir agregarlo', 'warning');
-      return;
+      return false;
     }
   }
 
-  if (currentPresupuestoItems.length === 0) { showToast('Agregá al menos un ítem', 'error'); return; }
+  if (currentPresupuestoItems.length === 0) { showToast('Agregá al menos un ítem', 'error'); return false; }
 
   const data = {
     clienteId,
@@ -696,9 +696,12 @@ async function savePresupuesto() {
   }
 
   saveDB(db);
-  closeModal('modalPresupuesto');
+  if (!skipClose) {
+    closeModal('modalPresupuesto');
+  }
   renderPresupuestos();
   showToast(editingPresupuestoId ? 'Presupuesto actualizado ✓' : 'Presupuesto creado ✓', 'success');
+  return true;
 }
 
 function deletePresupuesto(id) {
@@ -710,11 +713,16 @@ function deletePresupuesto(id) {
   showToast('Presupuesto eliminado', 'info');
 }
 
-function previewPresupuestoFromModal() {
-  savePresupuesto();
+async function previewPresupuestoFromModal() {
+  const saved = await savePresupuesto(true); // guardar sin cerrar el modal
+  if (!saved) return; // si falló la validación, no hacer nada
+
   const db = getDB();
   const id = editingPresupuestoId || (db.presupuestos?.slice(-1)[0]?.id);
-  if (id) previewPresupuesto(id);
+  if (id) {
+    closeModal('modalPresupuesto'); // cerrar el modal de edición
+    previewPresupuesto(id); // abrir la vista previa
+  }
 }
 
 function previewPresupuesto(id) {
