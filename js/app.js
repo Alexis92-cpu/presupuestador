@@ -439,26 +439,26 @@ function renderPresupuestos() {
     const totalUSD = toUSD(total, oficial);
     const canEdit = currentUser.rol !== 'viewer';
     return `
-    <div class="budget-card ${p.estado}" onclick="openEditPresupuesto(${p.id})">
+    <article class="budget-card ${p.estado}" data-action="edit" data-id="${p.id}" role="button" tabindex="0" aria-label="Editar presupuesto ${p.numero}">
       <div class="card-top">
         <span class="card-num">${p.numero}</span>
         <span class="${statusClass(p.estado)}">${statusLabel(p.estado)}</span>
       </div>
-      <div class="card-client">${p.clienteNombre || '—'}</div>
-      <div class="card-date">📅 ${formatDate(p.fecha)} &nbsp;·&nbsp; Validez: ${p.validez} días</div>
+      <p class="card-client">${p.clienteNombre || '—'}</p>
+      <time class="card-date">📅 ${formatDate(p.fecha)} &nbsp;·&nbsp; Validez: ${p.validez} días</time>
       <div class="card-total">
         <div>
           <div class="card-total-label">Total</div>
           <div class="card-total-ars">${fmtARS(total)}</div>
           ${oficial > 0 ? `<div class="card-total-usd">${fmtUSD(totalUSD)}</div>` : ''}
         </div>
-        <div class="card-actions" onclick="event.stopPropagation()">
-          ${canEdit ? `<button class="btn-icon" onclick="event.stopPropagation(); openEditPresupuesto(${p.id})" title="Editar">✏️</button>` : ''}
-          <button class="btn-icon" onclick="event.stopPropagation(); previewPresupuesto(${p.id})" title="Imprimir">🖨️</button>
-          ${canEdit ? `<button class="btn-icon danger" onclick="event.stopPropagation(); deletePresupuesto(${p.id})" title="Eliminar">🗑️</button>` : ''}
-        </div>
+        <nav class="card-actions" aria-label="Acciones del presupuesto">
+          ${canEdit ? `<button type="button" class="btn-icon" data-action="edit" data-id="${p.id}" aria-label="Editar" title="Editar">✏️</button>` : ''}
+          <button type="button" class="btn-icon" data-action="preview" data-id="${p.id}" aria-label="Imprimir" title="Imprimir">🖨️</button>
+          ${canEdit ? `<button type="button" class="btn-icon danger" data-action="delete" data-id="${p.id}" aria-label="Eliminar" title="Eliminar">🗑️</button>` : ''}
+        </nav>
       </div>
-    </div>`;
+    </article>`;
   }).join('');
 }
 
@@ -779,19 +779,23 @@ function previewPresupuestoFromModal() {
 
   // Guardar local + nube
   saveDB(db);
-
-  // Cerrar el editor
-  document.getElementById('modalPresupuesto').classList.add('hidden');
-
-  // Abrir la preview directamente (sin setTimeout ni closeModal)
-  previewPresupuesto(previewId);
   renderPresupuestos();
+
+  // Generar el HTML de la preview
+  renderPreviewHTML(previewId);
+
+  // Transición atómica: cerrar editor → abrir preview
+  ModalManager.transition('modalPresupuesto', 'modalPrint');
 }
 
-function previewPresupuesto(id) {
+/**
+ * Genera el HTML de la preview y lo inyecta en #printContent
+ * NO abre el modal — esa responsabilidad es del llamador.
+ */
+function renderPreviewHTML(id) {
   const db = getDB();
   const p = (db.presupuestos || []).find(x => x.id === id);
-  if (!p) return;
+  if (!p) return false;
 
   const oficial = p.dolarOficialAtCreacion > 0 ? p.dolarOficialAtCreacion : dollarRates.oficial;
   const cliente = (db.clientes || []).find(c => c.id === p.clienteId) || {};
@@ -893,7 +897,16 @@ function previewPresupuesto(id) {
   </div>`;
 
   document.getElementById('printContent').innerHTML = html;
-  openModal('modalPrint');
+  return true;
+}
+
+/**
+ * Preview directa desde card: genera HTML + abre modal
+ */
+function previewPresupuesto(id) {
+  if (renderPreviewHTML(id)) {
+    ModalManager.open('modalPrint');
+  }
 }
 
 function downloadPDF() {
@@ -1282,31 +1295,22 @@ function deleteUsuario(id) {
 }
 
 // =====================================================
-// MODAL HELPERS
+// MODAL HELPERS (delegamos a ModalManager)
 // =====================================================
 function openModal(id) {
-  document.getElementById(id).classList.remove('hidden');
-  document.body.style.overflow = 'hidden';
+  ModalManager.open(id);
 }
 
 function closeModal(id) {
-  document.getElementById(id).classList.add('hidden');
-  document.body.style.overflow = '';
+  ModalManager.close(id);
 }
 
-// Close modal on overlay click
-document.querySelectorAll('.modal-overlay').forEach(overlay => {
-  overlay.addEventListener('click', function (e) {
-    if (e.target === this) closeModal(this.id);
-  });
-});
-
-// Close on Escape
-document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') {
-    document.querySelectorAll('.modal-overlay:not(.hidden)').forEach(m => closeModal(m.id));
-  }
-});
+// Inicializar ModalManager cuando el DOM esté listo
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', function () { ModalManager.init(); });
+} else {
+  ModalManager.init();
+}
 
 // =====================================================
 // TOAST
