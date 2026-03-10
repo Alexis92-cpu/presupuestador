@@ -537,7 +537,7 @@ function fillClientesDatalist() {
 
   // Si estamos editando, poner el nombre actual
   if (editingPresupuestoId) {
-    const p = db.presupuestos.find(x => x.id === editingPresupuestoId);
+    const p = db.presupuestos.find(x => x.id == editingPresupuestoId);
     if (p) document.getElementById('presClienteBusqueda').value = p.clienteNombre;
   } else {
     document.getElementById('presClienteBusqueda').value = '';
@@ -698,7 +698,7 @@ async function savePresupuesto(skipClose = false) {
   };
 
   if (editingPresupuestoId) {
-    const idx = (db.presupuestos || []).findIndex(p => p.id === editingPresupuestoId);
+    const idx = (db.presupuestos || []).findIndex(p => p.id == editingPresupuestoId);
     if (idx !== -1) {
       db.presupuestos[idx] = { ...db.presupuestos[idx], ...data };
     }
@@ -771,7 +771,7 @@ function previewPresupuestoFromModal() {
   // Guardar en la DB
   let previewId = editingPresupuestoId;
   if (editingPresupuestoId) {
-    const idx = (db.presupuestos || []).findIndex(p => p.id === editingPresupuestoId);
+    const idx = (db.presupuestos || []).findIndex(p => p.id == editingPresupuestoId);
     if (idx !== -1) db.presupuestos[idx] = { ...db.presupuestos[idx], ...data };
   } else {
     if (!db.presupuestos) db.presupuestos = [];
@@ -1308,8 +1308,13 @@ function openModal(id) { ModalSystem.open(id); }
 function closeModal(id) { ModalSystem.close(id); }
 
 // Inicialización global
+// Inicialización global (v6.0.03)
 function initApp() {
   ModalSystem.init();
+
+  // Limpiar búsqueda al entrar
+  const sInput = document.getElementById('searchPresupuestos');
+  if (sInput) sInput.value = '';
 
   // Delegación de eventos para tarjetas
   document.addEventListener('click', function (e) {
@@ -1317,7 +1322,9 @@ function initApp() {
     var btn = e.target.closest('[data-action]');
     if (btn) {
       e.stopPropagation();
+      e.stopImmediatePropagation(); // Evita otros disparos
       e.preventDefault();
+
       var action = btn.getAttribute('data-action');
       var id = parseInt(btn.getAttribute('data-id'), 10);
       if (isNaN(id)) return;
@@ -1332,12 +1339,13 @@ function initApp() {
     var prevBtn = e.target.closest('[data-preview-from-modal]');
     if (prevBtn) {
       e.stopPropagation();
+      e.stopImmediatePropagation();
       e.preventDefault();
       previewPresupuestoFromModal();
       return;
     }
 
-    // 3. Click en la tarjeta
+    // 3. Click en la tarjeta (solo si no se clicó un botón)
     var card = e.target.closest('[data-card-edit]');
     if (card) {
       var cardId = parseInt(card.getAttribute('data-card-edit'), 10);
@@ -1345,18 +1353,10 @@ function initApp() {
     }
   });
 
-  // Limpiar búsqueda al entrar (v5.6)
-  const sInput = document.getElementById('searchPresupuestos');
-  if (sInput) sInput.value = '';
-
-  // Otros Inits...
+  console.log('NETPOINT v6.0.03 initialized ✓');
 }
 
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initApp);
-} else {
-  initApp();
-}
+
 
 // =====================================================
 // TOAST
@@ -1413,11 +1413,14 @@ document.head.appendChild(style);
 // INIT
 // =====================================================
 document.addEventListener('DOMContentLoaded', () => {
-  // 1. Inicializar DB local inmediatamente (evita pantalla blanca)
+  // 1. Inicializar DB local inmediatamente
   initDB();
 
-  // 2. Intentar sincronizar en SEGUNDO PLANO (no bloquea el inicio)
+  // 2. Intentar sincronizar en SEGUNDO PLANO
   syncFromCloud();
+
+  // 3. Inicializar sistema de modales y delegación (v6.0.02)
+  initApp();
 
   // Restaurar sesión si existe
   const savedUser = sessionStorage.getItem('presupuestopro_user');
