@@ -444,7 +444,7 @@ function renderPresupuestos() {
         </div>
         <div class="card-actions" onclick="event.stopPropagation()">
           ${canEdit ? `<button class="btn-icon" onclick="openEditPresupuesto(${p.id})" title="Editar">✏️</button>` : ''}
-          <button class="btn-icon" onclick="previewPresupuesto(${p.id})" title="Im/priprimir">🖨️</button>
+          <button class="btn-icon" onclick="previewPresupuesto(${p.id})" title="Imprimir">🖨️</button>
           ${canEdit ? `<button class="btn-icon danger" onclick="deletePresupuesto(${p.id})" title="Eliminar">🗑️</button>` : ''}
         </div>
       </div>

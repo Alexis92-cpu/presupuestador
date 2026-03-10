@@ -1764,6 +1764,13 @@ textarea.form-control {
     width: 100%;
   }
 
+  /* Excluir btn-icon dentro de card-actions del width 100% */
+  .card-actions .btn-icon {
+    width: 42px;
+    height: 42px;
+    font-size: 18px;
+  }
+
   /* Cards */
   .card-grid {
     grid-template-columns: 1fr;
@@ -1783,7 +1790,7 @@ textarea.form-control {
   }
 
   .card-actions {
-    flex-direction: column;
+    flex-direction: row;
     gap: 6px;
   }
 
