@@ -453,9 +453,9 @@ function renderPresupuestos() {
           ${oficial > 0 ? `<div class="card-total-usd">${fmtUSD(totalUSD)}</div>` : ''}
         </div>
         <div class="card-actions" onclick="event.stopPropagation()">
-          ${canEdit ? `<button class="btn-icon" onclick="openEditPresupuesto(${p.id})" title="Editar">✏️</button>` : ''}
-          <button class="btn-icon" onclick="previewPresupuesto(${p.id})" title="Imprimir">🖨️</button>
-          ${canEdit ? `<button class="btn-icon danger" onclick="deletePresupuesto(${p.id})" title="Eliminar">🗑️</button>` : ''}
+          ${canEdit ? `<button class="btn-icon" onclick="event.stopPropagation(); openEditPresupuesto(${p.id})" title="Editar">✏️</button>` : ''}
+          <button class="btn-icon" onclick="event.stopPropagation(); previewPresupuesto(${p.id})" title="Imprimir">🖨️</button>
+          ${canEdit ? `<button class="btn-icon danger" onclick="event.stopPropagation(); deletePresupuesto(${p.id})" title="Eliminar">🗑️</button>` : ''}
         </div>
       </div>
     </div>`;
@@ -765,31 +765,27 @@ function previewPresupuestoFromModal() {
   };
 
   // Guardar en la DB
+  let previewId = editingPresupuestoId;
   if (editingPresupuestoId) {
     const idx = (db.presupuestos || []).findIndex(p => p.id === editingPresupuestoId);
     if (idx !== -1) db.presupuestos[idx] = { ...db.presupuestos[idx], ...data };
   } else {
     if (!db.presupuestos) db.presupuestos = [];
     if (!db.nextId) db.nextId = {};
-    const newId = db.nextId.presupuestos || 1;
-    db.presupuestos.push({ id: newId, ...data });
-    db.nextId.presupuestos = newId + 1;
+    previewId = db.nextId.presupuestos || 1;
+    db.presupuestos.push({ id: previewId, ...data });
+    db.nextId.presupuestos = previewId + 1;
   }
 
-  // Guardar local + nube (sin await, no bloqueamos)
+  // Guardar local + nube
   saveDB(db);
 
-  const previewId = editingPresupuestoId || (db.presupuestos?.slice(-1)[0]?.id);
+  // Cerrar el editor
+  document.getElementById('modalPresupuesto').classList.add('hidden');
 
-  // Cerrar el editor y abrir la preview
-  closeModal('modalPresupuesto');
-
-  // Delay para que el DOM procese el cierre del modal antes de abrir otro
-  setTimeout(function () {
-    console.log("Abriendo preview para ID:", previewId);
-    renderPresupuestos();
-    if (previewId) previewPresupuesto(previewId);
-  }, 250);
+  // Abrir la preview directamente (sin setTimeout ni closeModal)
+  previewPresupuesto(previewId);
+  renderPresupuestos();
 }
 
 function previewPresupuesto(id) {
