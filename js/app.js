@@ -723,16 +723,71 @@ function deletePresupuesto(id) {
   showToast('Presupuesto eliminado', 'info');
 }
 
-async function previewPresupuestoFromModal() {
-  const saved = await savePresupuesto(true); // guardar sin cerrar el modal
-  if (!saved) return; // si falló la validación, no hacer nada
+function previewPresupuestoFromModal() {
+  // Validaciones básicas
+  const clienteNombreInput = document.getElementById('presClienteBusqueda').value.trim();
+  if (!clienteNombreInput) { showToast('Ingrese el nombre del cliente', 'error'); return; }
+  if (currentPresupuestoItems.length === 0) { showToast('Agregá al menos un ítem', 'error'); return; }
 
   const db = getDB();
-  const id = editingPresupuestoId || (db.presupuestos?.slice(-1)[0]?.id);
-  if (id) {
-    closeModal('modalPresupuesto'); // cerrar el modal de edición
-    previewPresupuesto(id); // abrir la vista previa
+
+  // Buscar o crear cliente
+  let cliente = (db.clientes || []).find(c => c.nombre.toLowerCase() === clienteNombreInput.toLowerCase());
+  let clienteId = cliente ? cliente.id : null;
+
+  if (!clienteId) {
+    const confirmAdd = confirm(`El cliente "${clienteNombreInput}" no existe. ¿Desea agregarlo?`);
+    if (confirmAdd) {
+      if (!db.clientes) db.clientes = [];
+      if (!db.nextId) db.nextId = {};
+      clienteId = db.nextId.clientes || 1;
+      db.clientes.push({ id: clienteId, nombre: clienteNombreInput, cuit: '', email: '', telefono: '', empresa: '', condIva: 'Consumidor Final', direccion: '' });
+      db.nextId.clientes = clienteId + 1;
+    } else {
+      return;
+    }
   }
+
+  // Armar datos del presupuesto
+  const data = {
+    clienteId,
+    clienteNombre: clienteNombreInput,
+    numero: document.getElementById('presNumero').value,
+    fecha: document.getElementById('presFecha').value,
+    validez: parseInt(document.getElementById('presValidez').value) || 15,
+    formaPago: document.getElementById('presFormaPago').value,
+    observaciones: document.getElementById('presObservaciones').value,
+    estado: document.getElementById('presEstado').value,
+    aplicaIva: document.getElementById('aplicaIva').checked,
+    items: JSON.parse(JSON.stringify(currentPresupuestoItems)),
+    dolarOficialAtCreacion: dollarRates.oficial
+  };
+
+  // Guardar en la DB
+  if (editingPresupuestoId) {
+    const idx = (db.presupuestos || []).findIndex(p => p.id === editingPresupuestoId);
+    if (idx !== -1) db.presupuestos[idx] = { ...db.presupuestos[idx], ...data };
+  } else {
+    if (!db.presupuestos) db.presupuestos = [];
+    if (!db.nextId) db.nextId = {};
+    const newId = db.nextId.presupuestos || 1;
+    db.presupuestos.push({ id: newId, ...data });
+    db.nextId.presupuestos = newId + 1;
+  }
+
+  // Guardar local + nube (sin await, no bloqueamos)
+  saveDB(db);
+  renderPresupuestos();
+
+  const previewId = editingPresupuestoId || (db.presupuestos?.slice(-1)[0]?.id);
+
+  // Cerrar el editor y abrir la preview
+  closeModal('modalPresupuesto');
+
+  // Pequeño delay para que el DOM se actualice antes de abrir el siguiente modal
+  setTimeout(() => {
+    if (previewId) previewPresupuesto(previewId);
+  }, 100);
 }
 
 function previewPresupuesto(id) {
