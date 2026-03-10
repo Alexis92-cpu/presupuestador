@@ -1,5 +1,5 @@
 /* ===================================================
-   NETPOINT – app.js v5.3 (Modular & Compatible)
+   NETPOINT – app.js v5.5 (Modular & Solid)
    =================================================== */
 'use strict';
 
@@ -784,8 +784,9 @@ function previewPresupuestoFromModal() {
   // Generar el HTML de la preview
   renderPreviewHTML(previewId);
 
-  // Cambio de modal con protección contra ghost-clicks
-  ModalManager.switchTo('modalPrint');
+  // Cambio de modal seguro
+  ModalSystem.close('modalPresupuesto');
+  ModalSystem.open('modalPrint');
 }
 
 /**
@@ -905,7 +906,7 @@ function renderPreviewHTML(id) {
  */
 function previewPresupuesto(id) {
   if (renderPreviewHTML(id)) {
-    ModalManager.open('modalPrint');
+    ModalSystem.open('modalPrint');
   }
 }
 
@@ -1295,21 +1296,47 @@ function deleteUsuario(id) {
 }
 
 // =====================================================
-// MODAL HELPERS (delegamos a ModalManager)
+// MODAL HELPERS (delegamos a ModalSystem modular)
 // =====================================================
-function openModal(id) {
-  ModalManager.open(id);
+function openModal(id) { ModalSystem.open(id); }
+function closeModal(id) { ModalSystem.close(id); }
+
+// Inicialización global
+function initApp() {
+  ModalSystem.init();
+
+  // Delegación de eventos para tarjetas
+  document.addEventListener('click', function (e) {
+    // 1. Botones de acción
+    var btn = e.target.closest('[data-action]');
+    if (btn) {
+      e.stopPropagation();
+      e.preventDefault();
+      var action = btn.getAttribute('data-action');
+      var id = parseInt(btn.getAttribute('data-id'), 10);
+      if (isNaN(id)) return;
+
+      if (action === 'edit') openEditPresupuesto(id);
+      else if (action === 'preview') previewPresupuesto(id);
+      else if (action === 'delete') deletePresupuesto(id);
+      return;
+    }
+
+    // 2. Click en la tarjeta
+    var card = e.target.closest('[data-card-edit]');
+    if (card) {
+      var cardId = parseInt(card.getAttribute('data-card-edit'), 10);
+      if (!isNaN(cardId)) openEditPresupuesto(cardId);
+    }
+  });
+
+  // Otros Inits...
 }
 
-function closeModal(id) {
-  ModalManager.close(id);
-}
-
-// Inicializar ModalManager cuando el DOM esté listo
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', function () { ModalManager.init(); });
+  document.addEventListener('DOMContentLoaded', initApp);
 } else {
-  ModalManager.init();
+  initApp();
 }
 
 // =====================================================
