@@ -1,5 +1,5 @@
 /* ===================================================
-   modal-system.js – Gestión Proactiva de Modales (v5.5)
+   modal-system.js – Gestión Proactiva de Modales (v5.6)
    =================================================== */
 'use strict';
 
@@ -42,8 +42,18 @@ var ModalSystem = (function () {
         copy.forEach(function (id) { close(id); });
     }
 
+    /**
+     * Transición segura entre modales (v5.6)
+     * Usa un timeout para evitar el bubbling del click actual.
+     */
+    function switchTo(fromId, toId) {
+        close(fromId);
+        setTimeout(function () {
+            open(toId);
+        }, 150); // Delay preventivo para evitar el "click-through"
+    }
+
     function init() {
-        // Escucha global de clicks para delegación
         document.addEventListener('click', function (e) {
             // 1. Delegación para botones de cierre [data-modal-close]
             var closeBtn = e.target.closest('[data-modal-close]');
@@ -56,7 +66,8 @@ var ModalSystem = (function () {
             // 2. Click en overlay (fondo)
             if (e.target.classList.contains('modal-overlay')) {
                 // Evitar clicks accidentales durante transiciones rápidas
-                if (Date.now() - _lastAction < 400) return;
+                var delta = Date.now() - _lastAction;
+                if (delta < 500) return; // Aumentado a 500ms
                 close(e.target.id);
             }
         });
@@ -68,8 +79,8 @@ var ModalSystem = (function () {
             }
         });
 
-        console.log('ModalSystem v5.5 Ready.');
+        console.log('ModalSystem v5.6 Ready.');
     }
 
-    return { open: open, close: close, closeAll: closeAll, init: init };
+    return { open: open, close: close, closeAll: closeAll, switchTo: switchTo, init: init };
 })();

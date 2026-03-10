@@ -1,5 +1,5 @@
 /* ===================================================
-   NETPOINT – app.js v5.5 (Modular & Solid)
+   NETPOINT – app.js v5.6 (Transition Fix)
    =================================================== */
 'use strict';
 
@@ -784,9 +784,8 @@ function previewPresupuestoFromModal() {
   // Generar el HTML de la preview
   renderPreviewHTML(previewId);
 
-  // Cambio de modal seguro
-  ModalSystem.close('modalPresupuesto');
-  ModalSystem.open('modalPrint');
+  // Transición segura (v5.6): cierra editor y abre preview con delay
+  ModalSystem.switchTo('modalPresupuesto', 'modalPrint');
 }
 
 /**
@@ -1307,7 +1306,7 @@ function initApp() {
 
   // Delegación de eventos para tarjetas
   document.addEventListener('click', function (e) {
-    // 1. Botones de acción
+    // 1. Botones de acción (Cards)
     var btn = e.target.closest('[data-action]');
     if (btn) {
       e.stopPropagation();
@@ -1322,13 +1321,26 @@ function initApp() {
       return;
     }
 
-    // 2. Click en la tarjeta
+    // 2. Botón preview desde el editor (v5.6)
+    var prevBtn = e.target.closest('[data-preview-from-modal]');
+    if (prevBtn) {
+      e.stopPropagation();
+      e.preventDefault();
+      previewPresupuestoFromModal();
+      return;
+    }
+
+    // 3. Click en la tarjeta
     var card = e.target.closest('[data-card-edit]');
     if (card) {
       var cardId = parseInt(card.getAttribute('data-card-edit'), 10);
       if (!isNaN(cardId)) openEditPresupuesto(cardId);
     }
   });
+
+  // Limpiar búsqueda al entrar (v5.6)
+  const sInput = document.getElementById('searchPresupuestos');
+  if (sInput) sInput.value = '';
 
   // Otros Inits...
 }
