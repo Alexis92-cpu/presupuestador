@@ -9,7 +9,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet" />
-    <link rel="stylesheet" href="css/styles.css?v=6.0.03" />
+    <link rel="stylesheet" href="css/styles.css?v=7.0.0" />
     <!-- html2pdf library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
@@ -132,7 +132,8 @@
             <section class="section active" id="section-presupuestos">
                 <div class="section-header">
                     <div>
-                        <h2 class="section-title">Presupuestos</h2>
+                        <h2 class="section-title">Presupuestos <small
+                                style="font-size: 10px; color: #aaa;">(v7.0.0)</small></h2>
                         <p class="section-desc">Creá y gestioná tus presupuestos</p>
                     </div>
                     <button class="btn-primary" onclick="openNuevoPresupuesto()">+ Nuevo Presupuesto</button>
@@ -143,7 +144,7 @@
                     <div class="search-box">
                         <span>🔍</span>
                         <input type="text" id="searchPresupuestos" placeholder="Buscar presupuesto..."
-                            oninput="filterPresupuestos()" />
+                            autocomplete="off" oninput="filterPresupuestos()" />
                     </div>
                     <select class="select-filter" id="filterEstado" onchange="filterPresupuestos()">
                         <option value="">Todos los estados</option>
@@ -640,13 +641,13 @@
         </script>
 
         <!-- Módulos de soporte -->
-        <script src="js/compat.js?v=6.0.03"></script>
-        <script src="js/utils.js?v=6.0.03"></script>
-        <script src="js/api.js?v=6.0.03"></script>
-        <script src="js/modal-system.js?v=6.0.03"></script>
+        <script src="js/compat.js?v=7.0.0"></script>
+        <script src="js/utils.js?v=7.0.0"></script>
+        <script src="js/api.js?v=7.0.0"></script>
+        <script src="js/modal-system.js?v=7.0.0"></script>
 
         <!-- App principal (incluye delegación de eventos) -->
-        <script src="js/app.js?v=6.0.03"></script>
+        <script src="js/app.js?v=7.0.0"></script>
 </body>
 
 </html>

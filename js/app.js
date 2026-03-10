@@ -1,7 +1,7 @@
 /* ===================================================
-   NETPOINT – app.js v6.0.0 (Unified & Robust)
+   NETPOINT – app.js v7.0.0 (Ultimate Event Control)
    =================================================== */
-console.error("APP v6.0.0 LOADING...");
+console.error("BOOTING NETPOINT v7.0.0...");
 'use strict';
 
 const SUPABASE_URL = "https://wrvjdyvwaejuguedqwsa.supabase.co";
@@ -302,6 +302,13 @@ function enterApp() {
   renderClientes();
   renderUsuarios();
   updateCategoriasDatalist();
+
+  // Forzar limpieza de búsqueda (v7.0.0)
+  const sInput = document.getElementById('searchPresupuestos');
+  if (sInput) {
+    sInput.value = '';
+    filterPresupuestos();
+  }
 }
 
 // =====================================================
@@ -1307,27 +1314,26 @@ function deleteUsuario(id) {
 function openModal(id) { ModalSystem.open(id); }
 function closeModal(id) { ModalSystem.close(id); }
 
-// Inicialización global
-// Inicialización global (v6.0.03)
+// Inicialización global (v7.0.0)
 function initApp() {
+  if (window.APP_INIT_DONE) return;
+  window.APP_INIT_DONE = true;
+
   ModalSystem.init();
 
-  // Limpiar búsqueda al entrar
-  const sInput = document.getElementById('searchPresupuestos');
-  if (sInput) sInput.value = '';
-
-  // Delegación de eventos para tarjetas
+  // Delegación de eventos maestra con MODO CAPTURA (v7.0.0)
+  // Al usar 'true', capturamos el evento antes de que cualquier otro script lo vea en modo burbujeo.
   document.addEventListener('click', function (e) {
-    // 1. Botones de acción (Cards)
+    // 1. Botones con data-action
     var btn = e.target.closest('[data-action]');
     if (btn) {
       e.stopPropagation();
-      e.stopImmediatePropagation(); // Evita otros disparos
+      e.stopImmediatePropagation();
       e.preventDefault();
 
       var action = btn.getAttribute('data-action');
-      var id = parseInt(btn.getAttribute('data-id'), 10);
-      if (isNaN(id)) return;
+      var id = btn.getAttribute('data-id');
+      if (!id) return;
 
       if (action === 'edit') openEditPresupuesto(id);
       else if (action === 'preview') previewPresupuesto(id);
@@ -1335,7 +1341,7 @@ function initApp() {
       return;
     }
 
-    // 2. Botón preview desde el editor (v5.6)
+    // 2. Previsualizar desde el editor
     var prevBtn = e.target.closest('[data-preview-from-modal]');
     if (prevBtn) {
       e.stopPropagation();
@@ -1345,15 +1351,15 @@ function initApp() {
       return;
     }
 
-    // 3. Click en la tarjeta (solo si no se clicó un botón)
+    // 3. Click directo en la tarjeta (solo si no se clicó nav.card-actions)
     var card = e.target.closest('[data-card-edit]');
-    if (card) {
-      var cardId = parseInt(card.getAttribute('data-card-edit'), 10);
-      if (!isNaN(cardId)) openEditPresupuesto(cardId);
+    if (card && !e.target.closest('nav.card-actions')) {
+      var cid = card.getAttribute('data-card-edit');
+      openEditPresupuesto(cid);
     }
-  });
+  }, true);
 
-  console.log('NETPOINT v6.0.03 initialized ✓');
+  console.log('NETPOINT v7.0.0 Ready ✓');
 }
 
 
