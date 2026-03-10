@@ -439,7 +439,7 @@ function renderPresupuestos() {
     const totalUSD = toUSD(total, oficial);
     const canEdit = currentUser.rol !== 'viewer';
     return `
-    <article class="budget-card ${p.estado}" data-action="edit" data-id="${p.id}" role="button" tabindex="0" aria-label="Editar presupuesto ${p.numero}">
+    <article class="budget-card ${p.estado}" data-card-edit="${p.id}" role="button" tabindex="0" aria-label="Editar presupuesto ${p.numero}">
       <div class="card-top">
         <span class="card-num">${p.numero}</span>
         <span class="${statusClass(p.estado)}">${statusLabel(p.estado)}</span>
@@ -784,8 +784,9 @@ function previewPresupuestoFromModal() {
   // Generar el HTML de la preview
   renderPreviewHTML(previewId);
 
-  // Transición atómica: cerrar editor → abrir preview
-  ModalManager.transition('modalPresupuesto', 'modalPrint');
+  // Cerrar editor y abrir preview
+  ModalManager.close('modalPresupuesto');
+  ModalManager.open('modalPrint');
 }
 
 /**

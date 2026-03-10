@@ -12,40 +12,50 @@
      * problemas de propagación y compatibilidad.
      */
     document.addEventListener('click', function (e) {
-        // Buscar el botón más cercano con data-action
+        // 1. Primero, verificar si se clickeó un botón con data-action
         var btn = e.target.closest('[data-action]');
-        if (!btn) return;
+        if (btn) {
+            // Detener propagación para que no se active el click de la tarjeta
+            e.stopPropagation();
+            e.preventDefault();
 
-        // Detener propagación para que no se active el click de la tarjeta
-        e.stopPropagation();
-        e.preventDefault();
+            var action = btn.getAttribute('data-action');
+            var id = parseInt(btn.getAttribute('data-id'), 10);
 
-        var action = btn.getAttribute('data-action');
-        var id = parseInt(btn.getAttribute('data-id'), 10);
+            if (!action || isNaN(id)) return;
 
-        if (!action || isNaN(id)) return;
+            switch (action) {
+                case 'edit':
+                    if (typeof openEditPresupuesto === 'function') {
+                        openEditPresupuesto(id);
+                    }
+                    break;
 
-        switch (action) {
-            case 'edit':
-                if (typeof openEditPresupuesto === 'function') {
-                    openEditPresupuesto(id);
-                }
-                break;
+                case 'preview':
+                    if (typeof previewPresupuesto === 'function') {
+                        previewPresupuesto(id);
+                    }
+                    break;
 
-            case 'preview':
-                if (typeof previewPresupuesto === 'function') {
-                    previewPresupuesto(id);
-                }
-                break;
+                case 'delete':
+                    if (typeof deletePresupuesto === 'function') {
+                        deletePresupuesto(id);
+                    }
+                    break;
 
-            case 'delete':
-                if (typeof deletePresupuesto === 'function') {
-                    deletePresupuesto(id);
-                }
-                break;
+                default:
+                    console.warn('CardActions: acción desconocida:', action);
+            }
+            return; // No procesar más
+        }
 
-            default:
-                console.warn('CardActions: acción desconocida:', action);
+        // 2. Si no fue un botón de acción, verificar si se clickeó la tarjeta
+        var card = e.target.closest('[data-card-edit]');
+        if (card) {
+            var cardId = parseInt(card.getAttribute('data-card-edit'), 10);
+            if (!isNaN(cardId) && typeof openEditPresupuesto === 'function') {
+                openEditPresupuesto(cardId);
+            }
         }
     });
 
