@@ -1,6 +1,7 @@
 /* ===================================================
-   NETPOINT – app.js v5.6 (Transition Fix)
+   NETPOINT – app.js v6.0.0 (Unified & Robust)
    =================================================== */
+console.error("APP v6.0.0 LOADING...");
 'use strict';
 
 const SUPABASE_URL = "https://wrvjdyvwaejuguedqwsa.supabase.co";
@@ -501,8 +502,11 @@ function openNuevoPresupuesto() {
 
 function openEditPresupuesto(id) {
   const db = getDB();
-  const p = (db.presupuestos || []).find(x => x.id === id);
-  if (!p) return;
+  const p = (db.presupuestos || []).find(x => x.id == id);
+  if (!p) {
+    console.warn("Presupuesto no encontrado para editar:", id);
+    return;
+  }
 
   editingPresupuestoId = id;
   currentPresupuestoItems = JSON.parse(JSON.stringify(p.items || []));
@@ -794,8 +798,11 @@ function previewPresupuestoFromModal() {
  */
 function renderPreviewHTML(id) {
   const db = getDB();
-  const p = (db.presupuestos || []).find(x => x.id === id);
-  if (!p) return false;
+  const p = (db.presupuestos || []).find(x => x.id == id);
+  if (!p) {
+    console.error("renderPreviewHTML: Presupuesto no encontrado:", id);
+    return false;
+  }
 
   const oficial = p.dolarOficialAtCreacion > 0 ? p.dolarOficialAtCreacion : dollarRates.oficial;
   const cliente = (db.clientes || []).find(c => c.id === p.clienteId) || {};

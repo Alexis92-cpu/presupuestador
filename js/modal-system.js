@@ -79,7 +79,7 @@ var ModalSystem = (function () {
             }
         });
 
-        console.log('ModalSystem v5.6 Ready.');
+        console.log('ModalSystem v6.0.01 Ready.');
     }
 
     return { open: open, close: close, closeAll: closeAll, switchTo: switchTo, init: init };
