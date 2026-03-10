@@ -9,7 +9,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet" />
-    <link rel="stylesheet" href="css/styles.css?v=5.1" />
+    <link rel="stylesheet" href="css/styles.css?v=5.3" />
     <!-- html2pdf library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
@@ -276,7 +276,7 @@
         <div class="modal modal-xl">
             <div class="modal-header">
                 <h3 id="modalPresupuestoTitle">Nuevo Presupuesto</h3>
-                <button class="modal-close" onclick="closeModal('modalPresupuesto')">✕</button>
+                <button class="modal-close" data-modal-close="modalPresupuesto">✕</button>
             </div>
             <div class="modal-body">
                 <div class="form-row">
@@ -407,7 +407,7 @@
                         <option value="aprobado">Aprobado</option>
                         <option value="rechazado">Rechazado</option>
                     </select>
-                    <button class="btn-secondary" onclick="closeModal('modalPresupuesto')">Cancelar</button>
+                    <button class="btn-secondary" data-modal-close="modalPresupuesto">Cancelar</button>
                     <button class="btn-primary" onclick="savePresupuesto()">💾 Guardar</button>
                     <button class="btn-success" onclick="previewPresupuestoFromModal()">�️ Previsualizar /
                         Imprimir</button>
@@ -420,7 +420,7 @@
             <div class="modal">
                 <div class="modal-header">
                     <h3 id="modalProductoTitle">Nuevo Producto</h3>
-                    <button class="modal-close" onclick="closeModal('modalProducto')">✕</button>
+                    <button class="modal-close" data-modal-close="modalProducto">✕</button>
                 </div>
                 <div class="modal-body">
                     <input type="hidden" id="prodId" />
@@ -478,7 +478,7 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button class="btn-secondary" onclick="closeModal('modalProducto')">Cancelar</button>
+                    <button class="btn-secondary" data-modal-close="modalProducto">Cancelar</button>
                     <button class="btn-primary" onclick="saveProducto()">💾 Guardar</button>
                 </div>
             </div>
@@ -489,7 +489,7 @@
             <div class="modal">
                 <div class="modal-header">
                     <h3 id="modalClienteTitle">Nuevo Cliente</h3>
-                    <button class="modal-close" onclick="closeModal('modalCliente')">✕</button>
+                    <button class="modal-close" data-modal-close="modalCliente">✕</button>
                 </div>
                 <div class="modal-body">
                     <input type="hidden" id="cliId" />
@@ -536,7 +536,7 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button class="btn-secondary" onclick="closeModal('modalCliente')">Cancelar</button>
+                    <button class="btn-secondary" data-modal-close="modalCliente">Cancelar</button>
                     <button class="btn-primary" onclick="saveCliente()">💾 Guardar</button>
                 </div>
             </div>
@@ -547,7 +547,7 @@
             <div class="modal">
                 <div class="modal-header">
                     <h3 id="modalUsuarioTitle">Nuevo Usuario</h3>
-                    <button class="modal-close" onclick="closeModal('modalUsuario')">✕</button>
+                    <button class="modal-close" data-modal-close="modalUsuario">✕</button>
                 </div>
                 <div class="modal-body">
                     <input type="hidden" id="usuId" />
@@ -591,7 +591,7 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button class="btn-secondary" onclick="closeModal('modalUsuario')">Cancelar</button>
+                    <button class="btn-secondary" data-modal-close="modalUsuario">Cancelar</button>
                     <button class="btn-primary" onclick="saveUsuario()">💾 Guardar</button>
                 </div>
             </div>
@@ -602,11 +602,11 @@
             <div class="modal modal-xl">
                 <div class="modal-header no-print">
                     <h3>Vista previa del presupuesto</h3>
-                    <button class="modal-close" onclick="closeModal('modalPrint')">✕</button>
+                    <button class="modal-close" data-modal-close="modalPrint">✕</button>
                 </div>
                 <div class="modal-body" id="printContent"></div>
                 <div class="modal-footer no-print">
-                    <button class="btn-secondary" onclick="closeModal('modalPrint')">Cerrar</button>
+                    <button class="btn-secondary" data-modal-close="modalPrint">Cerrar</button>
                     <button class="btn-primary" onclick="downloadPDF()">📥 Descargar PDF</button>
                     <button class="btn-success" onclick="window.print()">🖨️ Imprimir</button>
                 </div>
@@ -642,14 +642,16 @@
         </script>
 
         <!-- Módulos de soporte -->
-        <script src="js/compat.js?v=5.1"></script>
-        <script src="js/modal-manager.js?v=5.1"></script>
+        <script src="js/compat.js?v=5.3"></script>
+        <script src="js/utils.js?v=5.3"></script>
+        <script src="js/api.js?v=5.3"></script>
+        <script src="js/modal-manager.js?v=5.3"></script>
 
         <!-- App principal -->
-        <script src="js/app.js?v=5.1"></script>
+        <script src="js/app.js?v=5.3"></script>
 
         <!-- Delegación de eventos para cards (después de app.js) -->
-        <script src="js/card-actions.js?v=5.1"></script>
+        <script src="js/card-actions.js?v=5.3"></script>
 </body>
 
 </html>

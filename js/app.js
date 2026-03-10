@@ -1,5 +1,5 @@
 /* ===================================================
-   NETPOINT – app.js v3.5 (Supabase Auto-Engine)
+   NETPOINT – app.js v5.3 (Modular & Compatible)
    =================================================== */
 'use strict';
 
@@ -784,9 +784,8 @@ function previewPresupuestoFromModal() {
   // Generar el HTML de la preview
   renderPreviewHTML(previewId);
 
-  // Cerrar editor y abrir preview
-  ModalManager.close('modalPresupuesto');
-  ModalManager.open('modalPrint');
+  // Cambio de modal con protección contra ghost-clicks
+  ModalManager.switchTo('modalPrint');
 }
 
 /**
