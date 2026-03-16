@@ -40,10 +40,26 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Mobile specific menu toggle
     const menuBtn = document.getElementById('mobile-menu-btn');
     const sidebar = document.querySelector('.sidebar');
+    const mainContent = document.querySelector('.main-content');
 
     if (menuBtn && sidebar) {
-        menuBtn.addEventListener('click', () => {
+        menuBtn.addEventListener('click', (e) => {
+             e.stopPropagation();
              sidebar.classList.toggle('open');
+             if (sidebar.classList.contains('open')) {
+                 document.body.style.overflow = 'hidden'; // Prevent scroll when menu open
+             } else {
+                 document.body.style.overflow = '';
+             }
+        });
+
+        // Close sidebar when clicking on a nav item
+        const navLinks = sidebar.querySelectorAll('.nav-item[data-target]');
+        navLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                sidebar.classList.remove('open');
+                document.body.style.overflow = '';
+            });
         });
 
         // Close when clicking outside of sidebar
@@ -51,6 +67,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (window.innerWidth <= 768) {
                 if (!sidebar.contains(e.target) && !menuBtn.contains(e.target) && sidebar.classList.contains('open')) {
                     sidebar.classList.remove('open');
+                    document.body.style.overflow = '';
                 }
             }
         });

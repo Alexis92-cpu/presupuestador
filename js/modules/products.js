@@ -198,11 +198,11 @@ const Products = {
             const priceArs = p.priceUsd * Exchange.rate;
             
             tr.innerHTML = `
-                <td><strong>${p.name}</strong></td>
-                <td><span class="badge border text-muted">${p.category}</span></td>
-                <td class="price-usd">${UI.formatCurrency(p.priceUsd, 'USD')}</td>
-                <td>${UI.formatCurrency(priceArs, 'ARS')}</td>
-                <td>
+                <td data-label="Nombre"><strong>${p.name}</strong></td>
+                <td data-label="Categoría"><span class="badge border text-muted">${p.category}</span></td>
+                <td data-label="Precio (USD)" class="price-usd">${UI.formatCurrency(p.priceUsd, 'USD')}</td>
+                <td data-label="Precio (ARS)">${UI.formatCurrency(priceArs, 'ARS')}</td>
+                <td data-label="Acciones">
                     <button class="icon-btn edit-btn" data-id="${p.id}">
                         <i class='bx bx-edit-alt'></i>
                     </button>

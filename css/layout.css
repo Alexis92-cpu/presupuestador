@@ -199,10 +199,11 @@
     .sidebar {
         position: fixed;
         left: -260px;
-        z-index: 100;
+        z-index: 1000;
         transition: left var(--transition-normal);
-        background: rgba(10, 10, 15, 0.95);
+        background: rgba(10, 10, 15, 0.98);
         backdrop-filter: blur(20px);
+        box-shadow: 10px 0 30px rgba(0,0,0,0.5);
     }
     
     .sidebar.open {
@@ -215,20 +216,89 @@
     
     .page-header {
         flex-direction: column;
-        align-items: flex-start;
+        align-items: stretch;
         gap: var(--space-3);
     }
-    
-    #exchange-form .input-group, #product-form .input-group {
-        margin-bottom: var(--space-3);
-    }
 
+    .page-header h2 {
+        font-size: 20px;
+    }
+    
     .price-inputs-grid {
         grid-template-columns: 1fr !important;
     }
     
     .topbar {
         padding: 0 var(--space-3);
+        height: 64px;
+    }
+
+    .topbar-center {
+        display: none; /* Hide exchange rate in center on mobile to save space */
+    }
+
+    .topbar-right .username-display {
+        display: none;
+    }
+
+    .content-scroll {
+        padding: var(--space-4) var(--space-3);
+    }
+
+    /* Modal adjustments for small screens */
+    .modal {
+        width: 95%;
+        padding: var(--space-3);
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+
+    .budget-modal-full {
+        width: 98%;
+        height: 95vh;
+    }
+
+    .budget-editor-grid {
+        gap: var(--space-3);
+    }
+}
+
+@media (max-width: 480px) {
+    .data-table {
+        min-width: 0;
+        display: block;
+    }
+
+    .data-table thead {
+        display: none;
+    }
+
+    .data-table tbody, .data-table tr, .data-table td {
+        display: block;
+        width: 100%;
+    }
+
+    .data-table tr {
+        margin-bottom: var(--space-3);
+        background: var(--surface-1);
+        border-radius: var(--radius-sm);
+        padding: var(--space-2);
+        border: 1px solid var(--surface-border);
+    }
+
+    .data-table td {
+        border: none;
+        padding: 8px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .data-table td::before {
+        content: attr(data-label);
+        font-weight: 600;
+        color: var(--text-muted);
+        font-size: 12px;
     }
 }
 

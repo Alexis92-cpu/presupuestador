@@ -8,9 +8,16 @@ const SUPABASE_ANON_KEY = 'sb_publishable_1b-kU32O9IMKtrZdyiHN8Q_gHIAo8wd';
 
 let supabaseClient = null;
 
-if (SUPABASE_URL !== 'TU_SUPABASE_URL_AQUI' && typeof window.supabase !== 'undefined') {
-    supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    console.log("Supabase Client Initialized");
+// Check if Supabase library is loaded and URL is provided
+if (SUPABASE_URL && SUPABASE_URL !== 'TU_SUPABASE_URL_AQUI' && typeof window.supabase !== 'undefined') {
+    try {
+        supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        console.log("Supabase Client Initialized successfully");
+    } catch (e) {
+        console.error("Failed to initialize Supabase client:", e);
+    }
+} else {
+    console.warn("Supabase library not found or URL not configured. Using LocalStorage fallback.");
 }
 
 // Emulate async Supabase behaviour using local storage as fallback if no credentials are provided.

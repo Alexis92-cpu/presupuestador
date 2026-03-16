@@ -181,13 +181,13 @@ const Budgets = {
         this.currentItems.forEach((item, index) => {
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td>${item.quantity}</td>
-                <td>${item.name}</td>
-                <td>${UI.formatCurrency(item.costUsd, 'USD')}</td>
-                <td>${UI.formatCurrency(item.priceUsd, 'USD')}</td>
-                <td>${item.ivaPercent}%</td>
-                <td>${UI.formatCurrency(item.subtotalUsd, 'USD')}</td>
-                <td><button type="button" class="icon-btn danger" onclick="Budgets.removeItem(${index})"><i class='bx bx-trash'></i></button></td>
+                <td data-label="Cant.">${item.quantity}</td>
+                <td data-label="Descripción">${item.name}</td>
+                <td data-label="Costo (USD)">${UI.formatCurrency(item.costUsd, 'USD')}</td>
+                <td data-label="Venta (USD)">${UI.formatCurrency(item.priceUsd, 'USD')}</td>
+                <td data-label="IVA">${item.ivaPercent}%</td>
+                <td data-label="Subtotal (USD)">${UI.formatCurrency(item.subtotalUsd, 'USD')}</td>
+                <td data-label="Acción"><button type="button" class="icon-btn danger" onclick="Budgets.removeItem(${index})"><i class='bx bx-trash'></i></button></td>
             `;
             tbody.appendChild(tr);
         });
