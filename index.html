@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Netpoint - Sistema de Presupuestos</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+
+    <!-- Supabase & PDF Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/animations.css">
+    <link rel="stylesheet" href="css/layout.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/pages.css">
+</head>
+<body>
+    
+    <!-- Toast Notifications Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Login Section -->
+    <main id="login-view" class="view-section active">
+        <!-- Interactive Background Canvas -->
+        <canvas id="login-canvas"></canvas>
+        
+        <div class="login-container glass-panel">
+            <div class="login-logo">
+                <img src="logo.png" alt="Netpoint Logo">
+            </div>
+            <h2>Acceso Restringido</h2>
+            <p class="subtitle">Ingrese sus credenciales para continuar</p>
+            
+            <form id="login-form">
+                <div class="input-group">
+                    <label for="username">Usuario</label>
+                    <div class="input-icon-wrapper">
+                        <i class='bx bx-user'></i>
+                        <input type="text" id="username" placeholder="Ingrese su usuario" required autocomplete="username">
+                    </div>
+                </div>
+                
+                <div class="input-group">
+                    <label for="password">Contraseña</label>
+                    <div class="input-icon-wrapper">
+                        <i class='bx bx-lock-alt'></i>
+                        <input type="password" id="password" placeholder="Ingrese su contraseña" required>
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn btn-primary btn-full">
+                    Ingresar <i class='bx bx-right-arrow-alt'></i>
+                </button>
+            </form>
+        </div>
+    </main>
+
+    <!-- Dashboard Section -->
+    <main id="dashboard-view" class="view-section split-layout">
+        
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar glass-panel">
+            <div class="sidebar-header">
+                <img src="logo.png" alt="Netpoint Logo" class="sidebar-logo">
+            </div>
+            <nav class="sidebar-nav">
+                <button class="nav-item active" data-target="budgets">
+                    <i class='bx bx-file'></i> Presupuestos
+                </button>
+                <button class="nav-item" data-target="products">
+                    <i class='bx bx-box'></i> Productos
+                </button>
+                <button class="nav-item" data-target="clients">
+                    <i class='bx bx-group'></i> Clientes
+                </button>
+                <button class="nav-item" data-target="users">
+                    <i class='bx bx-shield-quarter'></i> Usuarios
+                </button>
+            </nav>
+            <div class="sidebar-footer">
+                <button id="logout-btn" class="nav-item btn-danger-outline">
+                    <i class='bx bx-log-out'></i> Salir
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <div class="main-content">
+            
+            <!-- Topbar -->
+            <header class="topbar glass-panel">
+                <div class="topbar-left">
+                    <button id="mobile-menu-btn" class="icon-btn mobile-only">
+                        <i class='bx bx-menu'></i>
+                    </button>
+                    <h1 id="page-title">Presupuestos</h1>
+                </div>
+                <div class="topbar-center">
+                    <div class="exchange-rate-widget tooltip" data-tooltip="Tasa de cambio oficial BNA (ARS/USD)">
+                        <i class='bx bx-trending-up'></i>
+                        <span>Dólar BNA:</span>
+                        <span id="current-exchange-rate">Cargando...</span>
+                    </div>
+                </div>
+                <div class="topbar-right">
+                    <div class="user-profile">
+                        <div class="avatar">AD</div>
+                        <span class="username-display">Admin</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Scrollable Content -->
+            <div class="content-scroll">
+                
+                <!-- Products Page -->
+                <section id="page-products" class="page-content">
+                    <div class="page-header">
+                        <h2>Gestión de Productos</h2>
+                        <button id="btn-add-product" class="btn btn-primary">
+                            <i class='bx bx-plus'></i> Nuevo Producto
+                        </button>
+                    </div>
+
+                    <!-- Products Table / List -->
+                    <div class="card glass-panel">
+                        <div class="card-header">
+                            <div class="search-bar">
+                                <i class='bx bx-search'></i>
+                                <input type="text" id="product-search" placeholder="Buscar productos...">
+                            </div>
+                        </div>
+                        <div class="table-container">
+                            <table id="products-table" class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Nombre</th>
+                                        <th>Categoría</th>
+                                        <th>Precio (USD)</th>
+                                        <th>Precio (ARS)</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="products-list">
+                                    <!-- Dynamic rows -->
+                                    <tr>
+                                        <td colspan="5" class="text-center text-muted">Aún no hay productos en la base de datos</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Product Modal (Hidden) -->
+                <div id="product-modal" class="modal-overlay hidden">
+                    <div class="modal glass-panel">
+                        <div class="modal-header">
+                            <h3 id="product-modal-title">Agregar Producto</h3>
+                            <button class="icon-btn close-modal"><i class='bx bx-x'></i></button>
+                        </div>
+                        <form id="product-form">
+                            <input type="hidden" id="product-id">
+                            <div class="input-group">
+                                <label for="prod-name">Nombre del Producto</label>
+                                <input type="text" id="prod-name" required>
+                            </div>
+                            <div class="input-group">
+                                <label for="prod-category">Categoría</label>
+                                <input type="text" id="prod-category" placeholder="Ej: Hardware, Software...">
+                            </div>
+                            
+                            <div class="price-inputs-grid">
+                                <div class="input-group">
+                                    <label for="prod-price-usd">Precio USD ($)</label>
+                                    <div class="input-icon-wrapper">
+                                        <i class='bx bx-dollar'></i>
+                                        <input type="number" id="prod-price-usd" step="0.01" min="0" required>
+                                    </div>
+                                    <small class="helper-text">El ARS se calcula en base a la tasa actual.</small>
+                                </div>
+                                <div class="input-group">
+                                    <label for="prod-price-ars">Precio ARS ($)</label>
+                                    <div class="input-icon-wrapper">
+                                        <i class='bx bx-money'></i>
+                                        <input type="number" id="prod-price-ars" step="0.01" min="0" required>
+                                    </div>
+                                    <small class="helper-text">El USD se calcula en base a la tasa actual.</small>
+                                </div>
+                            </div>
+                            
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-ghost close-modal">Cancelar</button>
+                                <button type="submit" class="btn btn-primary">Guardar Producto</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+
+
+                <!-- Budgets Page -->
+                <section id="page-budgets" class="page-content">
+                    <div class="page-header">
+                       <h2>Listado de Presupuestos</h2>
+                       <button id="btn-new-budget" class="btn btn-primary">
+                           <i class='bx bx-plus'></i> Crear Presupuesto
+                       </button>
+                    </div>
+                    
+                    <div id="budgets-grid" class="budgets-grid">
+                        <!-- Budget cards will be rendered here -->
+                        <div class="empty-state text-center text-muted">
+                            <i class='bx bx-file' style='font-size: 3rem;'></i>
+                            <p>No hay presupuestos creados aún.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Clients Page -->
+                <section id="page-clients" class="page-content">
+                    <div class="page-header">
+                        <h2>Gestión de Clientes</h2>
+                        <button id="btn-add-client" class="btn btn-primary btn-animated">
+                            <i class='bx bx-plus'></i> Nuevo Cliente
+                        </button>
+                    </div>
+                    <div class="card glass-panel">
+                        <div class="card-header">
+                            <div class="search-bar">
+                                <i class='bx bx-search'></i>
+                                <input type="text" id="client-search" placeholder="Buscar clientes...">
+                            </div>
+                        </div>
+                        <div class="table-container">
+                            <table id="clients-table" class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Nombre/Empresa</th>
+                                        <th>Teléfono</th>
+                                        <th>Email</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="clients-list">
+                                    <tr><td colspan="4" class="text-center text-muted">Cargando datos...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Users Page -->
+                <section id="page-users" class="page-content">
+                    <div class="page-header">
+                        <h2>Gestión de Usuarios</h2>
+                        <button id="btn-add-user" class="btn btn-primary btn-animated">
+                            <i class='bx bx-plus'></i> Nuevo Usuario
+                        </button>
+                    </div>
+                    <div class="card glass-panel">
+                        <div class="card-header">
+                            <div class="search-bar">
+                                <i class='bx bx-search'></i>
+                                <input type="text" id="user-search" placeholder="Buscar usuarios...">
+                            </div>
+                        </div>
+                        <div class="table-container">
+                            <table id="users-table" class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Nombre</th>
+                                        <th>Usuario</th>
+                                        <th>Rol</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="users-list">
+                                    <tr><td colspan="4" class="text-center text-muted">Cargando datos...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Budget Editor Modal (THE BIG OVERHAUL) -->
+                <div id="budget-editor-modal" class="modal-overlay hidden">
+                    <div class="modal glass-panel budget-modal-full">
+                        <div class="modal-header">
+                            <h3>Generador de Presupuesto Pro</h3>
+                            <button class="icon-btn close-budget-modal"><i class='bx bx-x'></i></button>
+                        </div>
+                        
+                        <form id="budget-form-main">
+                            <div class="budget-editor-grid">
+                                <!-- Step 1: Client & General Info -->
+                                <div class="budget-editor-column">
+                                    <div class="input-group">
+                                        <label>Seleccionar Cliente</label>
+                                        <select id="budget-client-select" class="styled-select" required>
+                                            <option value="">-- Seleccionar --</option>
+                                        </select>
+                                    </div>
+                                    <div class="grid-2-cols">
+                                        <div class="input-group">
+                                            <label>N° Presupuesto</label>
+                                            <input type="text" id="budget-number" readonly class="input-readonly">
+                                        </div>
+                                        <div class="input-group">
+                                            <label>Fecha</label>
+                                            <input type="text" id="budget-date-today" readonly class="input-readonly">
+                                        </div>
+                                    </div>
+                                    <div class="input-group">
+                                        <label>Días de Validez</label>
+                                        <input type="number" id="budget-validity" value="7" min="1">
+                                    </div>
+                                    <div class="input-group">
+                                        <label>Observaciones (Subtítulo)</label>
+                                        <textarea id="budget-observations" rows="2" placeholder="Notas adicionales..."></textarea>
+                                    </div>
+                                </div>
+
+                                <!-- Step 2: Item Selection -->
+                                <div class="budget-editor-column">
+                                    <div class="input-group">
+                                        <label>Agregar Producto/Servicio</label>
+                                        <div class="input-icon-wrapper">
+                                            <i class='bx bx-search'></i>
+                                            <input type="text" id="budget-item-search" placeholder="Escriba para buscar...">
+                                            <div id="search-results-popover" class="search-popover hidden"></div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="item-config-grid hidden" id="item-config-panel">
+                                        <div class="input-group">
+                                            <label>Cant.</label>
+                                            <input type="number" id="item-qty" value="1" min="1">
+                                        </div>
+                                        <div class="input-group">
+                                            <label>IVA Item</label>
+                                            <select id="item-iva" class="styled-select">
+                                                <option value="0">0%</option>
+                                                <option value="10.5">10.5%</option>
+                                                <option value="21" selected>21%</option>
+                                            </select>
+                                        </div>
+                                        <div class="input-group">
+                                            <label>Margen %</label>
+                                            <select id="item-profit" class="styled-select">
+                                                <option value="5">5%</option>
+                                                <option value="10">10%</option>
+                                                <option value="15">15%</option>
+                                                <option value="20" selected>20%</option>
+                                                <option value="25">25%</option>
+                                                <option value="30">30%</option>
+                                                <option value="35">35%</option>
+                                            </select>
+                                        </div>
+                                        <button type="button" id="btn-add-item-to-list" class="btn btn-secondary btn-full" style="grid-column: span 3;">
+                                            Agregar a la lista
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Step 3: Items List -->
+                            <div class="budget-items-list-container">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Cant.</th>
+                                            <th>Descripción</th>
+                                            <th>Costo (USD)</th>
+                                            <th>Venta (USD)</th>
+                                            <th>IVA</th>
+                                            <th>Subtotal (USD)</th>
+                                            <th>Acción</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="budget-items-body">
+                                        <!-- Items will appear here -->
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- Step 4: Final Totals -->
+                            <div class="budget-totals-footer">
+                                <div class="total-checks">
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" id="global-iva-toggle">
+                                        <span class="toggle-slider"></span>
+                                        Incluir IVA en el Total
+                                    </label>
+                                </div>
+                                <div class="totals-display">
+                                    <div class="total-row">
+                                        <span>TOTAL USD:</span>
+                                        <span id="final-total-usd">$ 0.00</span>
+                                    </div>
+                                    <div class="total-row featured">
+                                        <span>TOTAL ARS:</span>
+                                        <span id="final-total-ars">$ 0.00</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-ghost close-budget-modal">Cancelar</button>
+                                <button type="submit" class="btn btn-primary">Generar Presupuesto</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Budget Preview/Print Modal -->
+                <div id="budget-preview-modal" class="modal-overlay hidden">
+                    <div class="modal glass-panel budget-modal-full">
+                        <div class="modal-header">
+                            <h3>Previsualización de Presupuesto</h3>
+                            <div class="header-actions">
+                                <button id="btn-print-doc" class="btn btn-ghost"><i class='bx bx-printer'></i> Imprimir</button>
+                                <button id="btn-export-pdf" class="btn btn-primary"><i class='bx bxs-file-pdf'></i> Exportar PDF</button>
+                                <button class="icon-btn close-preview-modal"><i class='bx bx-x'></i></button>
+                            </div>
+                        </div>
+                        <div class="preview-scroll">
+                            <div id="printable-budget" class="budget-paper-pro">
+                                <!-- Dynamic content for Print -->
+                            </div>
+                        </div>
+                    </div>
+                </div>        </section>
+
+               <!-- Client Modal (Hidden) -->
+                <div id="client-modal" class="modal-overlay hidden">
+                    <div class="modal glass-panel">
+                        <div class="modal-header">
+                            <h3 id="client-modal-title">Agregar Cliente</h3>
+                            <button class="icon-btn close-modal"><i class='bx bx-x'></i></button>
+                        </div>
+                        <form id="client-form">
+                            <input type="hidden" id="client-id">
+                            <div class="input-group">
+                                <label for="cli-name">Nombre / Empresa</label>
+                                <input type="text" id="cli-name" required>
+                            </div>
+                            <div class="input-group">
+                                <label for="cli-phone">Teléfono</label>
+                                <input type="text" id="cli-phone">
+                            </div>
+                            <div class="input-group">
+                                <label for="cli-email">Email</label>
+                                <input type="text" id="cli-email">
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-ghost close-modal">Cancelar</button>
+                                <button type="submit" class="btn btn-primary">Guardar Cliente</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- User Modal (Hidden) -->
+                <div id="user-modal" class="modal-overlay hidden">
+                    <div class="modal glass-panel">
+                        <div class="modal-header">
+                            <h3 id="user-modal-title">Agregar Usuario</h3>
+                            <button class="icon-btn close-modal"><i class='bx bx-x'></i></button>
+                        </div>
+                        <form id="user-form">
+                            <input type="hidden" id="user-id">
+                            <div class="input-group">
+                                <label for="usr-fullname">Nombre Completo</label>
+                                <input type="text" id="usr-fullname" required>
+                            </div>
+                            <div class="input-group">
+                                <label for="usr-username">Usuario de Acceso</label>
+                                <input type="text" id="usr-username" required>
+                            </div>
+                            <div class="input-group">
+                                <label for="usr-password">Contraseña</label>
+                                <input type="password" id="usr-password" placeholder="Dejar en blanco para no modificar">
+                            </div>
+                            <div class="input-group">
+                                <label for="usr-role">Rol</label>
+                                <select id="usr-role" class="styled-select" required>
+                                    <option value="admin">Administrador</option>
+                                    <option value="user">Vendedor</option>
+                                </select>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-ghost close-modal">Cancelar</button>
+                                <button type="submit" class="btn btn-primary">Guardar Usuario</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- Scripts -->
+    <script src="js/utils/store.js" defer></script>
+    <script src="js/utils/ui.js" defer></script>
+    <script src="js/services/supabaseApi.js" defer></script>
+    <script src="js/modules/canvas-bg.js" defer></script>
+    <script src="js/modules/auth.js" defer></script>
+    <script src="js/modules/exchange.js" defer></script>
+    <script src="js/modules/products.js" defer></script>
+    <script src="js/modules/clients.js" defer></script>
+    <script src="js/modules/users.js" defer></script>
+    <script src="js/modules/budgets.js" defer></script>
+    <script src="js/app.js" defer></script>
+</body>
+</html>

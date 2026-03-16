@@ -1,0 +1,238 @@
+/* Full height views */
+.view-section {
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: none;
+}
+
+.view-section.active {
+    display: block;
+    z-index: 10;
+}
+
+.view-section.active.split-layout {
+    display: flex;
+}
+
+/* During transitions, we need both to be visible but at different layers */
+.view-enter-active, .view-exit-active {
+    display: flex !important;
+}
+
+/* Dashboard Layout */
+.split-layout {
+    display: flex;
+    flex-direction: row;
+}
+
+/* Sidebar Navigation */
+.sidebar {
+    width: 260px;
+    height: 100vh;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    padding: var(--space-4) var(--space-3);
+    border-right: 1px solid var(--surface-border);
+    border-top: none;
+    border-bottom: none;
+    border-left: none;
+    border-radius: 0;
+}
+
+.sidebar-header {
+    margin-bottom: var(--space-5);
+    text-align: center;
+}
+
+.sidebar-logo {
+    max-width: 140px;
+}
+
+.sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    flex-grow: 1;
+}
+
+.sidebar-footer {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    margin-top: auto;
+}
+
+/* Main Content Area */
+.main-content {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+    background: radial-gradient(circle at top right, rgba(139, 92, 246, 0.05), transparent 40%),
+                radial-gradient(circle at bottom left, rgba(59, 130, 246, 0.05), transparent 40%);
+}
+
+/* Topbar */
+.topbar {
+    height: 72px;
+    padding: 0 var(--space-4);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--surface-border);
+    border-top: none;
+    border-left: none;
+    border-right: none;
+    border-radius: 0;
+    z-index: 10;
+}
+
+.topbar-left {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+}
+
+.topbar-right {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+}
+
+.topbar-center {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+}
+
+@media (max-width: 768px) {
+    .topbar-center {
+        position: static;
+        transform: none;
+        order: 2;
+        margin-left: auto;
+        margin-right: var(--space-3);
+    }
+}
+
+.mobile-only {
+    display: none;
+}
+
+/* Content Auto-Scroll */
+.content-scroll {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding: var(--space-5) var(--space-4);
+}
+
+.page-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: none; /* controlled by JS */
+    animation: fadeIn var(--transition-normal);
+}
+
+.page-content.active {
+    display: block;
+}
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-5);
+}
+
+/* Modals Overlay */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--transition-normal);
+}
+
+.modal-overlay:not(.hidden) {
+    opacity: 1;
+    pointer-events: all;
+    display: flex !important; /* overrides utility */
+}
+
+.modal {
+    width: 90%;
+    max-width: 500px;
+    padding: var(--space-4);
+    transform: translateY(20px);
+    transition: transform var(--transition-normal);
+}
+
+.modal-overlay:not(.hidden) .modal {
+    transform: translateY(0);
+}
+
+/* Responsive Variables & Breakpoints */
+@media (max-width: 1024px) {
+    .content-scroll {
+        padding: var(--space-4);
+    }
+}
+
+@media (max-width: 768px) {
+    .sidebar {
+        position: fixed;
+        left: -260px;
+        z-index: 100;
+        transition: left var(--transition-normal);
+        background: rgba(10, 10, 15, 0.95);
+        backdrop-filter: blur(20px);
+    }
+    
+    .sidebar.open {
+        left: 0;
+    }
+    
+    .mobile-only {
+        display: flex;
+    }
+    
+    .page-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--space-3);
+    }
+    
+    #exchange-form .input-group, #product-form .input-group {
+        margin-bottom: var(--space-3);
+    }
+
+    .price-inputs-grid {
+        grid-template-columns: 1fr !important;
+    }
+    
+    .topbar {
+        padding: 0 var(--space-3);
+    }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
