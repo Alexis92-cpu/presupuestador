@@ -25,69 +25,104 @@ const DB = {
     
     async get(table) {
         if (supabaseClient) {
-            const { data, error } = await supabaseClient.from(table).select('*');
-            if (error) throw error;
-            return data;
+            try {
+                const { data, error } = await supabaseClient.from(table).select('*');
+                if (error) throw error;
+                return data;
+            } catch (err) {
+                console.error(`DB: Error fetching from ${table}, using fallback:`, err);
+                return this.localGet(table);
+            }
         } else {
-            // Fallback Local
-            return new Promise((resolve) => {
-                setTimeout(() => {
-                    const data = localStorage.getItem(`netpoint_${table}`) || '[]';
-                    resolve(JSON.parse(data));
-                }, 300); // 300ms simulated latency
-            });
+            return this.localGet(table);
         }
+    },
+
+    localGet(table) {
+        return new Promise((resolve) => {
+            setTimeout(() => {
+                const data = localStorage.getItem(`netpoint_${table}`) || '[]';
+                resolve(JSON.parse(data));
+            }, 100);
+        });
     },
 
     async insert(table, payload) {
         if (supabaseClient) {
-            const { data, error } = await supabaseClient.from(table).insert([payload]).select();
-            if (error) throw error;
-            return data[0];
+            try {
+                const { data, error } = await supabaseClient.from(table).insert([payload]).select();
+                if (error) throw error;
+                return data[0];
+            } catch (err) {
+                console.error(`DB: Error inserting into ${table}, using fallback:`, err);
+                return this.localInsert(table, payload);
+            }
         } else {
-            return new Promise((resolve) => {
-                setTimeout(() => {
-                    const list = JSON.parse(localStorage.getItem(`netpoint_${table}`) || '[]');
-                    payload.id = payload.id || Date.now().toString();
-                    list.push(payload);
-                    localStorage.setItem(`netpoint_${table}`, JSON.stringify(list));
-                    resolve(payload);
-                }, 300);
-            });
+            return this.localInsert(table, payload);
         }
+    },
+
+    localInsert(table, payload) {
+        return new Promise((resolve) => {
+            setTimeout(() => {
+                const list = JSON.parse(localStorage.getItem(`netpoint_${table}`) || '[]');
+                payload.id = payload.id || Date.now().toString();
+                list.push(payload);
+                localStorage.setItem(`netpoint_${table}`, JSON.stringify(list));
+                resolve(payload);
+            }, 100);
+        });
     },
 
     async update(table, id, payload) {
         if (supabaseClient) {
-            const { data, error } = await supabaseClient.from(table).update(payload).eq('id', id).select();
-            if (error) throw error;
-            return data[0];
+            try {
+                const { data, error } = await supabaseClient.from(table).update(payload).eq('id', id).select();
+                if (error) throw error;
+                return data[0];
+            } catch (err) {
+                console.error(`DB: Error updating ${table}, using fallback:`, err);
+                return this.localUpdate(table, id, payload);
+            }
         } else {
-            return new Promise((resolve) => {
-                setTimeout(() => {
-                    let list = JSON.parse(localStorage.getItem(`netpoint_${table}`) || '[]');
-                    list = list.map(item => item.id == id ? { ...item, ...payload } : item);
-                    localStorage.setItem(`netpoint_${table}`, JSON.stringify(list));
-                    resolve({ id, ...payload });
-                }, 300);
-            });
+            return this.localUpdate(table, id, payload);
         }
+    },
+
+    localUpdate(table, id, payload) {
+        return new Promise((resolve) => {
+            setTimeout(() => {
+                let list = JSON.parse(localStorage.getItem(`netpoint_${table}`) || '[]');
+                list = list.map(item => item.id == id ? { ...item, ...payload } : item);
+                localStorage.setItem(`netpoint_${table}`, JSON.stringify(list));
+                resolve({ id, ...payload });
+            }, 100);
+        });
     },
 
     async remove(table, id) {
         if (supabaseClient) {
-            const { error } = await supabaseClient.from(table).delete().eq('id', id);
-            if (error) throw error;
-            return true;
+            try {
+                const { error } = await supabaseClient.from(table).delete().eq('id', id);
+                if (error) throw error;
+                return true;
+            } catch (err) {
+                console.error(`DB: Error removing from ${table}, using fallback:`, err);
+                return this.localRemove(table, id);
+            }
         } else {
-            return new Promise((resolve) => {
-                setTimeout(() => {
-                    let list = JSON.parse(localStorage.getItem(`netpoint_${table}`) || '[]');
-                    list = list.filter(item => item.id != id);
-                    localStorage.setItem(`netpoint_${table}`, JSON.stringify(list));
-                    resolve(true);
-                }, 300);
-            });
+            return this.localRemove(table, id);
         }
+    },
+
+    localRemove(table, id) {
+        return new Promise((resolve) => {
+            setTimeout(() => {
+                let list = JSON.parse(localStorage.getItem(`netpoint_${table}`) || '[]');
+                list = list.filter(item => item.id != id);
+                localStorage.setItem(`netpoint_${table}`, JSON.stringify(list));
+                resolve(true);
+            }, 100);
+        });
     }
 };
