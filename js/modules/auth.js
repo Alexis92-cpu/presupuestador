@@ -20,17 +20,37 @@ const Auth = {
         this.checkSession();
     },
 
-    handleLogin() {
-        const user = document.getElementById('username')?.value;
-        const pass = document.getElementById('password')?.value;
+    async handleLogin() {
+        const usernameInput = document.getElementById('username')?.value;
+        const passwordInput = document.getElementById('password')?.value;
 
-        if (user === 'admin' && pass === 'admin123') {
-            store.set('session', { loggedIn: true, user: 'Admin' });
+        // Validar contra hardcoded admin (respaldo)
+        if (usernameInput === 'admin' && passwordInput === 'admin123') {
+            store.set('session', { loggedIn: true, user: 'Admin', role: 'admin' });
             UI.showToast('Bienvenido, Admin', 'success');
-            
             this.transitionToApp();
-        } else {
-            UI.showToast('Credenciales incorrectas', 'error');
+            return;
+        }
+
+        // Validar contra Base de Datos
+        try {
+            const users = await DB.get('users');
+            const foundUser = users.find(u => u.username === usernameInput && u.password === passwordInput);
+            
+            if (foundUser) {
+                store.set('session', { 
+                    loggedIn: true, 
+                    user: foundUser.fullname, 
+                    role: foundUser.role 
+                });
+                UI.showToast(`Bienvenido, ${foundUser.fullname}`, 'success');
+                this.transitionToApp();
+            } else {
+                UI.showToast('Credenciales incorrectas', 'error');
+            }
+        } catch (error) {
+            console.error("Auth: Error during login:", error);
+            UI.showToast('Error de conexión al validar usuario', 'error');
         }
     },
 
@@ -55,6 +75,15 @@ const Auth = {
             // Switch to dashboard fully
             dashboardView.classList.add('active');
             dashboardView.classList.remove('view-enter-active');
+
+            // Update user info in UI
+            const session = store.get('session');
+            if (session) {
+                const userDisplay = document.querySelector('.username-display');
+                const avatarDisplay = document.querySelector('.avatar');
+                if (userDisplay) userDisplay.textContent = session.user;
+                if (avatarDisplay) avatarDisplay.textContent = session.user.substring(0, 2).toUpperCase();
+            }
 
             // Initialize app default state
             UI.switchPage('budgets');
@@ -100,6 +129,13 @@ const Auth = {
             dashboardView.classList.remove('hidden');
             dashboardView.classList.add('active');
             dashboardView.style.display = 'flex';
+
+            // Update user info in UI
+            const userDisplay = document.querySelector('.username-display');
+            const avatarDisplay = document.querySelector('.avatar');
+            if (userDisplay) userDisplay.textContent = session.user;
+            if (avatarDisplay) avatarDisplay.textContent = session.user.substring(0, 2).toUpperCase();
+
             UI.switchPage('budgets');
         } else {
             dashboardView.classList.remove('active');
