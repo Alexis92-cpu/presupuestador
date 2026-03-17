@@ -33,6 +33,7 @@ const Products = {
         try {
             this.list = await DB.get('products');
             this.originalList = [...this.list];
+            console.log("Products: List loaded successfully", this.list.length, "items");
         } catch (error) {
             console.error('Error loading products:', error);
             this.list = [];
@@ -186,6 +187,7 @@ const Products = {
         const tbody = document.getElementById('products-list');
         if (!tbody) return;
 
+        console.log("Products: Rendering table with", this.list.length, "items");
         tbody.innerHTML = '';
 
         if (this.list.length === 0) {

@@ -49,6 +49,9 @@ const UI = {
     },
 
     switchPage(pageId) {
+        // Persist current page for refresh
+        store.set('current_page', pageId);
+
         document.querySelectorAll('.page-content').forEach(page => {
             page.classList.remove('active');
         });

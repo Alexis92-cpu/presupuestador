@@ -130,13 +130,15 @@ const Auth = {
             dashboardView.classList.add('active');
             dashboardView.style.display = 'flex';
 
-            // Update user info in UI
+            // Update user info
             const userDisplay = document.querySelector('.username-display');
             const avatarDisplay = document.querySelector('.avatar');
             if (userDisplay) userDisplay.textContent = session.user;
             if (avatarDisplay) avatarDisplay.textContent = session.user.substring(0, 2).toUpperCase();
 
-            UI.switchPage('budgets');
+            // Restore last page or default to budgets
+            const lastPage = store.get('current_page') || 'budgets';
+            UI.switchPage(lastPage);
         } else {
             dashboardView.classList.remove('active');
             dashboardView.style.display = 'none';
