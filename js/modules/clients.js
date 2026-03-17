@@ -4,8 +4,12 @@
 const Clients = {
     list: [],
 
+    initialized: false,
     async init() {
-        this.setupListeners();
+        if (!this.initialized) {
+            this.setupListeners();
+            this.initialized = true;
+        }
         await this.loadClients();
     },
 

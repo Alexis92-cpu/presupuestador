@@ -76,6 +76,12 @@ const UI = {
         
         // Close sidebar on mobile
         document.querySelector('.sidebar')?.classList.remove('open');
+
+        // Logic-specific refreshes
+        if (pageId === 'products') Products.init();
+        if (pageId === 'clients') Clients.init();
+        if (pageId === 'users') Users.init();
+        if (pageId === 'budgets') Budgets.init();
     },
 
     formatCurrency(amount, currency = 'USD') {

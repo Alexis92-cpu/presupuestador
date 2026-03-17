@@ -4,8 +4,12 @@
 const Users = {
     list: [],
 
+    initialized: false,
     async init() {
-        this.setupListeners();
+        if (!this.initialized) {
+            this.setupListeners();
+            this.initialized = true;
+        }
         await this.loadUsers();
     },
 

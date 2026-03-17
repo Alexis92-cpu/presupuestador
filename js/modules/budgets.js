@@ -4,9 +4,13 @@ const Budgets = {
     currentItems: [], // Items being added to the current budget
     selectedProduct: null,
 
+    initialized: false,
     async init() {
         await this.loadBudgets();
-        this.setupListeners();
+        if (!this.initialized) {
+            this.setupListeners();
+            this.initialized = true;
+        }
         this.renderGrid();
     },
 

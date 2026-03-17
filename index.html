@@ -355,15 +355,19 @@
                                         </div>
                                         <div class="input-group">
                                             <label>Ganancia %</label>
-                                            <select id="item-profit" class="styled-select">
-                                                <option value="5">5%</option>
-                                                <option value="10">10%</option>
-                                                <option value="15">15%</option>
-                                                <option value="20" selected>20%</option>
-                                                <option value="25">25%</option>
-                                                <option value="30">30%</option>
-                                                <option value="35">35%</option>
-                                            </select>
+                                            <div class="dual-input-wrapper">
+                                                <input type="number" id="item-profit" value="20" min="0" max="100">
+                                                <select id="item-profit-presets" class="styled-select" onchange="document.getElementById('item-profit').value = this.value">
+                                                    <option value="">Presets</option>
+                                                    <option value="5">5%</option>
+                                                    <option value="10">10%</option>
+                                                    <option value="15">15%</option>
+                                                    <option value="20" selected>20%</option>
+                                                    <option value="25">25%</option>
+                                                    <option value="30">30%</option>
+                                                    <option value="35">35%</option>
+                                                </select>
+                                            </div>
                                         </div>
                                         <button type="button" id="btn-add-item-to-list" class="btn btn-secondary btn-full" style="grid-column: span 3;">
                                             Agregar a la lista

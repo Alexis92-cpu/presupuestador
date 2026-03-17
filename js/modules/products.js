@@ -3,12 +3,16 @@ const Products = {
     list: [],
     originalList: [],
 
+    initialized: false,
     async init() {
         await this.loadProducts();
         if (this.list.length === 0) {
             await this.seedData();
         }
-        this.setupListeners();
+        if (!this.initialized) {
+            this.setupListeners();
+            this.initialized = true;
+        }
         this.renderTable();
     },
 

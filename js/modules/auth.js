@@ -71,12 +71,15 @@ const Auth = {
             // Completely hide login
             loginView.classList.remove('active', 'view-exit-active');
             loginView.style.display = 'none';
+            loginView.style.visibility = 'hidden';
+            loginView.style.zIndex = '-10';
             
             // Switch to dashboard fully
             dashboardView.classList.add('active');
             dashboardView.classList.remove('view-enter-active');
+            dashboardView.style.pointerEvents = 'all';
 
-            // Update user info in UI
+            // Update user info
             const session = store.get('session');
             if (session) {
                 const userDisplay = document.querySelector('.username-display');
@@ -86,7 +89,8 @@ const Auth = {
             }
 
             // Initialize app default state
-            UI.switchPage('budgets');
+            const lastPage = store.get('current_page') || 'budgets';
+            UI.switchPage(lastPage);
         }, 600);
     },
 
