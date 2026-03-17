@@ -263,45 +263,6 @@
     }
 }
 
-@media (max-width: 480px) {
-    .data-table {
-        min-width: 0;
-        display: block;
-    }
-
-    .data-table thead {
-        display: none;
-    }
-
-    .data-table tbody, .data-table tr, .data-table td {
-        display: block;
-        width: 100%;
-    }
-
-    .data-table tr {
-        margin-bottom: var(--space-3);
-        background: var(--surface-1);
-        border-radius: var(--radius-sm);
-        padding: var(--space-2);
-        border: 1px solid var(--surface-border);
-    }
-
-    .data-table td {
-        border: none;
-        padding: 8px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-
-    .data-table td::before {
-        content: attr(data-label);
-        font-weight: 600;
-        color: var(--text-muted);
-        font-size: 12px;
-    }
-}
-
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(5px); }
     to { opacity: 1; transform: translateY(0); }

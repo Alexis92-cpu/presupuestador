@@ -138,10 +138,10 @@ const Clients = {
         data.forEach(c => {
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td><strong>${c.name}</strong></td>
-                <td>${c.phone || '-'}</td>
-                <td><a href="mailto:${c.email}">${c.email || '-'}</a></td>
-                <td>
+                <td data-label="Nombre"><strong>${c.name}</strong></td>
+                <td data-label="Teléfono">${c.phone || '-'}</td>
+                <td data-label="Email"><a href="mailto:${c.email}">${c.email || '-'}</a></td>
+                <td data-label="Acciones">
                     <button class="icon-btn edit-client-btn" data-id="${c.id}" title="Editar">
                         <i class='bx bx-edit-alt'></i>
                     </button>
