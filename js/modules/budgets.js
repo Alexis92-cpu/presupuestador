@@ -130,7 +130,7 @@ const Budgets = {
             matches.forEach(p => {
                 const div = document.createElement('div');
                 div.className = 'search-item';
-                div.innerHTML = `<span>${p.name}</span> <small>${UI.formatCurrency(p.priceUsd, 'USD')}</small>`;
+                div.innerHTML = `<span>${p.name}</span> <small>${UI.formatCurrency(p.price_usd, 'USD')}</small>`;
                 div.onclick = () => this.selectProduct(p);
                 popover.appendChild(div);
             });
@@ -155,14 +155,14 @@ const Budgets = {
         const profit = parseFloat(document.getElementById('item-profit').value) || 0;
 
         // Total price calculation: Cost * (1 + profit%)
-        const pricePerUnitUsd = this.selectedProduct.priceUsd * (1 + (profit / 100));
+        const pricePerUnitUsd = this.selectedProduct.price_usd * (1 + (profit / 100));
         
         this.currentItems.push({
             id: Date.now(),
             productId: this.selectedProduct.id,
             name: this.selectedProduct.name,
-            costUsd: this.selectedProduct.priceUsd,
-            priceUsd: pricePerUnitUsd,
+            costUsd: this.selectedProduct.price_usd,
+            price_usd: pricePerUnitUsd,
             quantity: qty,
             ivaPercent: iva,
             subtotalUsd: pricePerUnitUsd * qty
@@ -188,7 +188,7 @@ const Budgets = {
                 <td data-label="Cant.">${item.quantity}</td>
                 <td data-label="Descripción">${item.name}</td>
                 <td data-label="Costo (USD)">${UI.formatCurrency(item.costUsd, 'USD')}</td>
-                <td data-label="Venta (USD)">${UI.formatCurrency(item.priceUsd, 'USD')}</td>
+                <td data-label="Venta (USD)">${UI.formatCurrency(item.price_usd, 'USD')}</td>
                 <td data-label="IVA">${item.ivaPercent}%</td>
                 <td data-label="Subtotal (USD)">${UI.formatCurrency(item.subtotalUsd, 'USD')}</td>
                 <td data-label="Acción"><button type="button" class="icon-btn danger" onclick="Budgets.removeItem(${index})"><i class='bx bx-trash'></i></button></td>
@@ -343,7 +343,7 @@ const Budgets = {
                         <tr>
                             <td>${item.name}</td>
                             <td>${item.quantity}</td>
-                            <td>${UI.formatCurrency(item.priceUsd, 'USD')}</td>
+                            <td>${UI.formatCurrency(item.price_usd, 'USD')}</td>
                             <td>${UI.formatCurrency(item.subtotalUsd, 'USD')}</td>
                         </tr>
                     `).join('')}

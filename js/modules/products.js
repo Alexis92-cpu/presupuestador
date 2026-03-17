@@ -18,13 +18,13 @@ const Products = {
 
     async seedData() {
         const seed = [
-            { name: 'Cámara Domo IP 2MP Hikvision', category: 'Seguridad', priceUsd: 45 },
-            { name: 'NVR 8 Canales 4K Dahua', category: 'Seguridad', priceUsd: 120 },
-            { name: 'Router WiFi 6 AX1800 TP-Link', category: 'Redes', priceUsd: 85 },
-            { name: 'Switch 24 Puertos Gigabit Hikvision', category: 'Redes', priceUsd: 110 },
-            { name: 'Disco Rígido 1TB WD Purple', category: 'Seguridad', priceUsd: 65 },
-            { name: 'Servicio Técnico Especializado (Hora)', category: 'Servicios', priceUsd: 25 },
-            { name: 'Desarrollo App Móvil (Módulo Mini)', category: 'Servicios', priceUsd: 500 }
+            { name: 'Cámara Domo IP 2MP Hikvision', category: 'Seguridad', price_usd: 45 },
+            { name: 'NVR 8 Canales 4K Dahua', category: 'Seguridad', price_usd: 120 },
+            { name: 'Router WiFi 6 AX1800 TP-Link', category: 'Redes', price_usd: 85 },
+            { name: 'Switch 24 Puertos Gigabit Hikvision', category: 'Redes', price_usd: 110 },
+            { name: 'Disco Rígido 1TB WD Purple', category: 'Seguridad', price_usd: 65 },
+            { name: 'Servicio Técnico Especializado (Hora)', category: 'Servicios', price_usd: 25 },
+            { name: 'Desarrollo App Móvil (Módulo Mini)', category: 'Servicios', price_usd: 500 }
         ];
         
         for (const item of seed) {
@@ -118,9 +118,9 @@ const Products = {
         document.getElementById('product-id').value = product.id;
         document.getElementById('prod-name').value = product.name;
         document.getElementById('prod-category').value = product.category;
-        document.getElementById('prod-price-usd').value = product.priceUsd;
+        document.getElementById('prod-price-usd').value = product.price_usd;
         // recalculate ars for display
-        document.getElementById('prod-price-ars').value = (product.priceUsd * Exchange.rate).toFixed(2);
+        document.getElementById('prod-price-ars').value = (product.price_usd * Exchange.rate).toFixed(2);
 
         document.getElementById('product-modal-title').textContent = 'Editar Producto';
 
@@ -131,9 +131,9 @@ const Products = {
         const idInput = document.getElementById('product-id').value;
         const nombre = document.getElementById('prod-name').value;
         const categoria = document.getElementById('prod-category').value;
-        const priceUsd = parseFloat(document.getElementById('prod-price-usd').value);
+        const price_usd = parseFloat(document.getElementById('prod-price-usd').value);
 
-        if (!nombre || isNaN(priceUsd)) {
+        if (!nombre || isNaN(price_usd)) {
             UI.showToast('Verifica los valores obligatorios.', 'error');
             return;
         }
@@ -141,7 +141,7 @@ const Products = {
         const payload = {
             name: nombre,
             category: categoria || 'General',
-            priceUsd: priceUsd
+            price_usd: price_usd
         };
 
         const btn = document.querySelector('#product-form button[type="submit"]');
@@ -208,12 +208,12 @@ const Products = {
 
         this.list.forEach(p => {
             const tr = document.createElement('tr');
-            const priceArs = p.priceUsd * Exchange.rate;
+            const priceArs = p.price_usd * Exchange.rate;
             
             tr.innerHTML = `
                 <td data-label="Nombre"><strong>${p.name}</strong></td>
                 <td data-label="Categoría"><span class="badge border text-muted">${p.category}</span></td>
-                <td data-label="Precio (USD)" class="price-usd">${UI.formatCurrency(p.priceUsd, 'USD')}</td>
+                <td data-label="Precio (USD)" class="price-usd">${UI.formatCurrency(p.price_usd, 'USD')}</td>
                 <td data-label="Precio (ARS)">${UI.formatCurrency(priceArs, 'ARS')}</td>
                 <td data-label="Acciones">
                     <button class="icon-btn edit-btn" data-id="${p.id}">
