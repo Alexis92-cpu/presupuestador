@@ -1,12 +1,13 @@
-// LocalStorage Wrapper
+// Storage Wrapper
 class Store {
     constructor(prefix = 'netpoint_') {
         this.prefix = prefix;
     }
 
-    get(key, defaultValue = null) {
+    get(key, defaultValue = null, persistent = true) {
+        const storage = persistent ? localStorage : sessionStorage;
         try {
-            const item = localStorage.getItem(this.prefix + key);
+            const item = storage.getItem(this.prefix + key);
             return item ? JSON.parse(item) : defaultValue;
         } catch (error) {
             console.error('Error reading from storage:', error);
@@ -14,9 +15,10 @@ class Store {
         }
     }
 
-    set(key, value) {
+    set(key, value, persistent = true) {
+        const storage = persistent ? localStorage : sessionStorage;
         try {
-            localStorage.setItem(this.prefix + key, JSON.stringify(value));
+            storage.setItem(this.prefix + key, JSON.stringify(value));
             return true;
         } catch (error) {
             console.error('Error writing to storage:', error);
@@ -24,8 +26,9 @@ class Store {
         }
     }
 
-    remove(key) {
-        localStorage.removeItem(this.prefix + key);
+    remove(key, persistent = true) {
+        const storage = persistent ? localStorage : sessionStorage;
+        storage.removeItem(this.prefix + key);
     }
 }
 

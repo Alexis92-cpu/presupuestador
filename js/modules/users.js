@@ -15,9 +15,12 @@ const Users = {
 
     async loadUsers() {
         try {
+            console.log("Users: Fetching from DB...");
             this.list = await DB.get('users');
+            console.log("Users: Loaded", this.list.length, "users", this.list);
             this.renderTable();
         } catch (error) {
+            console.error("Users: Error loading:", error);
             UI.showToast('Error cargando usuarios', 'error');
         }
     },

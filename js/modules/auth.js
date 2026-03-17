@@ -26,7 +26,7 @@ const Auth = {
 
         // Validar contra hardcoded admin (respaldo)
         if (usernameInput === 'admin' && passwordInput === 'admin123') {
-            store.set('session', { loggedIn: true, user: 'Admin', role: 'admin' });
+            store.set('session', { loggedIn: true, user: 'Admin', role: 'admin' }, false);
             UI.showToast('Bienvenido, Admin', 'success');
             this.transitionToApp();
             return;
@@ -42,7 +42,7 @@ const Auth = {
                     loggedIn: true, 
                     user: foundUser.fullname, 
                     role: foundUser.role 
-                });
+                }, false);
                 UI.showToast(`Bienvenido, ${foundUser.fullname}`, 'success');
                 this.transitionToApp();
             } else {
@@ -80,7 +80,7 @@ const Auth = {
             dashboardView.style.pointerEvents = 'all';
 
             // Update user info
-            const session = store.get('session');
+            const session = store.get('session', null, false);
             if (session) {
                 const userDisplay = document.querySelector('.username-display');
                 const avatarDisplay = document.querySelector('.avatar');
@@ -95,7 +95,7 @@ const Auth = {
     },
 
     logout() {
-        store.remove('session');
+        store.remove('session', false);
         UI.showToast('Sesión cerrada', 'info');
         
         const loginView = document.getElementById('login-view');
@@ -123,7 +123,7 @@ const Auth = {
     },
 
     checkSession() {
-        const session = store.get('session');
+        const session = store.get('session', null, false);
         const loginView = document.getElementById('login-view');
         const dashboardView = document.getElementById('dashboard-view');
 

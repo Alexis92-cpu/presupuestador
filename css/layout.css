@@ -51,6 +51,13 @@
 
 .sidebar-logo {
     max-width: 140px;
+    filter: drop-shadow(0 0 12px rgba(139, 92, 246, 0.4)) brightness(1.2);
+    transition: all var(--transition-normal);
+}
+
+.sidebar-logo:hover {
+    filter: drop-shadow(0 0 18px rgba(139, 92, 246, 0.6)) brightness(1.4);
+    transform: scale(1.05);
 }
 
 .sidebar-nav {
