@@ -4,7 +4,7 @@
 // vamos a usar LocalStorage como "Fallback", simulando el comportamiento Asíncrono de Supabase.
 
 const SUPABASE_URL = 'https://wrvjdyvwaejuguedqwsa.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_1b-kU32O9IMKtrZdyiHN8Q_gHIAo8wd';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndydmpkeXZ3YWVqdWd1ZWRxd3NhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5MTEwNzksImV4cCI6MjA4ODQ4NzA3OX0.irf_mFgAaAoNWachMKpwf5WWUHSVMIf3_j5LA5O9lSI';
 
 let supabaseClient = null;
 
