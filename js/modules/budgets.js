@@ -3,6 +3,7 @@ const Budgets = {
     list: [],
     currentItems: [], // Items being added to the current budget
     selectedProduct: null,
+    totals: { usd: 0, ars: 0 },
 
     initialized: false,
     async init() {
@@ -144,6 +145,11 @@ const Budgets = {
         this.selectedProduct = product;
         document.getElementById('budget-item-search').value = product.name;
         document.getElementById('search-results-popover').classList.add('hidden');
+        
+        // Ensure inputs are reset
+        document.getElementById('item-qty').value = 1;
+        document.getElementById('item-profit').value = 20;
+        
         document.getElementById('item-config-panel').classList.remove('hidden');
     },
 
@@ -155,13 +161,15 @@ const Budgets = {
         const profit = parseFloat(document.getElementById('item-profit').value) || 0;
 
         // Total price calculation: Cost * (1 + profit%)
-        const pricePerUnitUsd = this.selectedProduct.price_usd * (1 + (profit / 100));
+        const costUsd = parseFloat(this.selectedProduct.price_usd) || 0;
+        const profitAmount = costUsd * (profit / 100);
+        const pricePerUnitUsd = costUsd + profitAmount;
         
         this.currentItems.push({
             id: Date.now(),
             productId: this.selectedProduct.id,
             name: this.selectedProduct.name,
-            costUsd: this.selectedProduct.price_usd,
+            costUsd: costUsd,
             price_usd: pricePerUnitUsd,
             quantity: qty,
             ivaPercent: iva,
@@ -210,27 +218,37 @@ const Budgets = {
         this.currentItems.forEach(item => {
             let itemTotal = item.subtotalUsd;
             if (includeGlobalIva) {
-                // If we include IVA, we add the item's specific IVA
                 itemTotal += (item.subtotalUsd * (item.ivaPercent / 100));
             }
             totalUsd += itemTotal;
         });
 
         const totalArs = totalUsd * Exchange.rate;
+        
+        this.totals = { usd: totalUsd, ars: totalArs };
 
         document.getElementById('final-total-usd').textContent = UI.formatCurrency(totalUsd, 'USD');
         document.getElementById('final-total-ars').textContent = UI.formatCurrency(totalArs, 'ARS');
     },
 
     async saveBudget() {
-        if (this.currentItems.length === 0) {
-            UI.showToast('Agrega al menos un producto.', 'error');
+        const clientSelect = document.getElementById('budget-client-select');
+        const clientId = clientSelect.value;
+        const clientName = clientSelect.options[clientSelect.selectedIndex]?.text;
+
+        if (!clientId) {
+            UI.showToast('Por favor, selecciona un cliente.', 'error');
             return;
         }
 
-        const clientId = document.getElementById('budget-client-select').value;
-        const clientName = document.getElementById('budget-client-select').options[document.getElementById('budget-client-select').selectedIndex].text;
-        
+        if (this.currentItems.length === 0) {
+            UI.showToast('Agrega al menos un producto al presupuesto.', 'error');
+            return;
+        }
+
+        const btnSave = document.querySelector('#budget-form-main button[type="submit"]');
+        if (btnSave) btnSave.disabled = true;
+
         const newBudget = {
             number: document.getElementById('budget-number').value,
             date: new Date().toISOString(),
@@ -239,8 +257,8 @@ const Budgets = {
             validity: document.getElementById('budget-validity').value,
             observations: document.getElementById('budget-observations').value,
             items: [...this.currentItems],
-            totalUsd: parseFloat(document.getElementById('final-total-usd').textContent.replace(/[^0-9.-]+/g,"")),
-            totalArs: parseFloat(document.getElementById('final-total-ars').textContent.replace(/[^0-9.-]+/g,"")),
+            totalUsd: this.totals.usd,
+            totalArs: this.totals.ars,
             rate: Exchange.rate
         };
 
@@ -254,7 +272,10 @@ const Budgets = {
             // Open preview automatically
             this.openPreview(saved.id);
         } catch (error) {
+            console.error('Budgets: Error saving:', error);
             UI.showToast('Error al guardar presupuesto', 'error');
+        } finally {
+            if (btnSave) btnSave.disabled = false;
         }
     },
 
