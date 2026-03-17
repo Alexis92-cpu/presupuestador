@@ -111,6 +111,47 @@ const PriceLists = {
         }
     },
 
+    openFile(id) {
+        const item = this.list.find(i => i.id == id);
+        if (!item || !item.file_data) {
+            UI.showToast('No hay datos de archivo para mostrar.', 'warning');
+            return;
+        }
+
+        try {
+            // Convert Base64 to Blob to open in new tab (bypassing most block policies)
+            const parts = item.file_data.split(';');
+            const contentType = parts[0].split(':')[1];
+            const base64Data = parts[1].split(',')[1];
+
+            const byteCharacters = atob(base64Data);
+            const byteNumbers = new Array(byteCharacters.length);
+            for (let i = 0; i < byteCharacters.length; i++) {
+                byteNumbers[i] = byteCharacters.charCodeAt(i);
+            }
+            const byteArray = new Uint8Array(byteNumbers);
+            const blob = new Blob([byteArray], { type: contentType });
+
+            const url = URL.createObjectURL(blob);
+            window.open(url, '_blank');
+            
+            // Clean up memory after a reasonable delay
+            setTimeout(() => URL.revokeObjectURL(url), 30000);
+        } catch (error) {
+            console.error('Error opening file:', error);
+            UI.showToast('Error al abrir el archivo.', 'error');
+        }
+    },
+
+    getFileIcon(fileName) {
+        const ext = fileName.split('.').pop().toLowerCase();
+        if (['pdf'].includes(ext)) return 'bxs-file-pdf text-danger';
+        if (['xlsx', 'xls', 'csv'].includes(ext)) return 'bxs-file-export text-success';
+        if (['doc', 'docx'].includes(ext)) return 'bxs-file-doc text-accent';
+        if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)) return 'bxs-file-image text-warning';
+        return 'bx-file text-muted';
+    },
+
     filterList(query) {
         if (!query) {
             this.renderTable(this.list);
@@ -137,28 +178,33 @@ const PriceLists = {
 
         data.forEach(item => {
             const tr = document.createElement('tr');
-            
-            // Generate a download link if data is present
-            let fileDisplay = "";
-            if (item.file_data) {
-                fileDisplay = `<a href="${item.file_data}" download="${item.file_name}" class="text-accent" style="text-decoration:none;">
-                    <i class='bx bxs-file-doc'></i> ${item.file_name} <small>(Descargar)</small>
-                </a>`;
-            } else {
-                fileDisplay = `<span class="text-muted"><i class='bx bx-file'></i> ${item.file_name}</span>`;
-            }
+            const iconClass = this.getFileIcon(item.file_name);
 
             tr.innerHTML = `
                 <td data-label="Proveedor"><strong>${item.provider_name}</strong></td>
-                <td data-label="Archivo">${fileDisplay}</td>
+                <td data-label="Archivo">
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <i class='bx ${iconClass}' style="font-size:1.4rem;"></i>
+                        <span>${item.file_name}</span>
+                    </div>
+                </td>
                 <td data-label="Fecha Subida">${new Date(item.date).toLocaleDateString()}</td>
                 <td data-label="Acciones">
-                    <button class="icon-btn delete-plist-btn" data-id="${item.id}" title="Eliminar">
-                        <i class='bx bx-trash'></i>
-                    </button>
+                    <div class="table-actions">
+                        <button class="btn btn-ghost btn-sm view-plist-btn" data-id="${item.id}" title="Ver / Abrir">
+                            <i class='bx bx-show'></i> Ver
+                        </button>
+                        <button class="icon-btn delete-plist-btn" data-id="${item.id}" title="Eliminar">
+                            <i class='bx bx-trash'></i>
+                        </button>
+                    </div>
                 </td>
             `;
             tbody.appendChild(tr);
+        });
+
+        document.querySelectorAll('.view-plist-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => this.openFile(e.currentTarget.dataset.id));
         });
 
         document.querySelectorAll('.delete-plist-btn').forEach(btn => {
