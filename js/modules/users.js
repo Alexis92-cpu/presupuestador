@@ -98,26 +98,33 @@ const Users = {
                 try {
                     await DB.update('users', idInput, payload);
                 } catch (e) {
-                    // Si falla por columna faltante, probamos con 'name'
-                    delete payload.fullname;
-                    payload.name = userNameValue;
-                    await DB.update('users', idInput, payload);
+                    if (e.code === 'PGRST204') {
+                         delete payload.fullname;
+                         payload.name = userNameValue;
+                         await DB.update('users', idInput, payload);
+                    } else { throw e; }
                 }
                 UI.showToast('Usuario actualizado.', 'success');
             } else {
                 try {
                     await DB.insert('users', payload);
                 } catch (e) {
-                    delete payload.fullname;
-                    payload.name = userNameValue;
-                    await DB.insert('users', payload);
+                    if (e.code === 'PGRST204') {
+                        delete payload.fullname;
+                        payload.name = userNameValue;
+                        await DB.insert('users', payload);
+                    } else { throw e; }
                 }
                 UI.showToast('Usuario creado exitosamente.', 'success');
             }
             await this.loadUsers();
             UI.closeModal('user-modal');
         } catch (error) {
-            UI.showToast('Error al guardar: la base de datos no está lista', 'error');
+            if (error.code === 'PGRST204') {
+                UI.showToast('Falta columna en DB. Ejecuta el script SQL.', 'warning');
+            } else {
+                UI.showToast('Error al guardar: la base de datos no responde', 'error');
+            }
             console.error("Users Save Error:", error);
         } finally {
             if (btn) {

@@ -25,17 +25,18 @@ const DB = {
     
     async get(table) {
         if (supabaseClient) {
-            try {
-                const { data, error } = await supabaseClient.from(table).select('*');
-                if (error) throw error;
-                return data;
-            } catch (err) {
-                console.error(`DB: Error fetching from ${table}, using fallback:`, err);
-                return this.localGet(table);
+            const { data, error } = await supabaseClient.from(table).select('*');
+            if (error) {
+                console.error(`DB: Error fetching from ${table}:`, error);
+                // Fallback only if it's a critical connection error or if specifically desired
+                if (error.code === 'PGRST301' || error.message?.includes('Fetch')) {
+                    return this.localGet(table);
+                }
+                throw error;
             }
-        } else {
-            return this.localGet(table);
+            return data;
         }
+        return this.localGet(table);
     },
 
     localGet(table) {
@@ -49,17 +50,14 @@ const DB = {
 
     async insert(table, payload) {
         if (supabaseClient) {
-            try {
-                const { data, error } = await supabaseClient.from(table).insert([payload]).select();
-                if (error) throw error;
-                return data[0];
-            } catch (err) {
-                console.error(`DB: Error inserting into ${table}, using fallback:`, err);
-                return this.localInsert(table, payload);
+            const { data, error } = await supabaseClient.from(table).insert([payload]).select();
+            if (error) {
+                console.error(`DB: Error inserting into ${table}:`, error);
+                throw error;
             }
-        } else {
-            return this.localInsert(table, payload);
+            return data[0];
         }
+        return this.localInsert(table, payload);
     },
 
     localInsert(table, payload) {
@@ -76,17 +74,14 @@ const DB = {
 
     async update(table, id, payload) {
         if (supabaseClient) {
-            try {
-                const { data, error } = await supabaseClient.from(table).update(payload).eq('id', id).select();
-                if (error) throw error;
-                return data[0];
-            } catch (err) {
-                console.error(`DB: Error updating ${table}, using fallback:`, err);
-                return this.localUpdate(table, id, payload);
+            const { data, error } = await supabaseClient.from(table).update(payload).eq('id', id).select();
+            if (error) {
+                console.error(`DB: Error updating ${table}:`, error);
+                throw error;
             }
-        } else {
-            return this.localUpdate(table, id, payload);
+            return data[0];
         }
+        return this.localUpdate(table, id, payload);
     },
 
     localUpdate(table, id, payload) {
@@ -102,17 +97,14 @@ const DB = {
 
     async remove(table, id) {
         if (supabaseClient) {
-            try {
-                const { error } = await supabaseClient.from(table).delete().eq('id', id);
-                if (error) throw error;
-                return true;
-            } catch (err) {
-                console.error(`DB: Error removing from ${table}, using fallback:`, err);
-                return this.localRemove(table, id);
+            const { error } = await supabaseClient.from(table).delete().eq('id', id);
+            if (error) {
+                console.error(`DB: Error removing from ${table}:`, error);
+                throw error;
             }
-        } else {
-            return this.localRemove(table, id);
+            return true;
         }
+        return this.localRemove(table, id);
     },
 
     localRemove(table, id) {

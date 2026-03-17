@@ -17,7 +17,11 @@ const PriceLists = {
             this.renderTable();
         } catch (error) {
             console.error('Error loading price lists:', error);
+            if (error.code === 'PGRST204' || error.message?.includes('not find')) {
+                UI.showToast('Tabla no creada. Ejecuta el script SQL.', 'warning');
+            }
             this.list = [];
+            this.renderTable();
         }
     },
 
