@@ -10,6 +10,11 @@ let supabaseClient = null;
 
 // Check if Supabase library is loaded and URL is provided
 if (SUPABASE_URL && SUPABASE_URL !== 'TU_SUPABASE_URL_AQUI' && typeof window.supabase !== 'undefined') {
+    // Pro-Tip: Supabase Anon Keys typically start with 'eyJ...'
+    if (!SUPABASE_ANON_KEY.startsWith('eyJ')) {
+        console.warn("ADVERTENCIA: Tu SUPABASE_ANON_KEY parece ser incorrecta (debería empezar con 'eyJ'). Revisa tu panel de Supabase.");
+    }
+    
     try {
         supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         console.log("Supabase Client Initialized successfully");

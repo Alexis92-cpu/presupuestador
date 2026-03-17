@@ -44,19 +44,34 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // 3. Initialize Modules with Error Capturing
-    try {
-        console.log("App: Initializing modules...");
-        await Auth.init();
-        await Exchange.init();
-        await Products.init();
-        await Clients.init();
-        await Users.init();
-        await Budgets.init();
-        if (typeof PriceLists !== 'undefined') await PriceLists.init();
-        console.log("App: All modules initialized.");
-    } catch (err) {
-        console.error("App: Fatal error during module initialization:", err);
-        UI.showToast("Error de conexión. Trabajando en modo local.", "warning");
+    console.log("App: Initializing modules...");
+    const initModules = [
+        { name: 'Auth', fn: () => Auth.init() },
+        { name: 'Exchange', fn: () => Exchange.init() },
+        { name: 'Products', fn: () => Products.init() },
+        { name: 'Clients', fn: () => Clients.init() },
+        { name: 'Users', fn: () => Users.init() },
+        { name: 'Budgets', fn: () => Budgets.init() }
+    ];
+
+    if (typeof PriceLists !== 'undefined') {
+        initModules.push({ name: 'PriceLists', fn: () => PriceLists.init() });
+    }
+
+    let connectionError = false;
+    for (const mod of initModules) {
+        try {
+            await mod.fn();
+        } catch (err) {
+            console.error(`App: Error initializing ${mod.name}:`, err);
+            connectionError = true;
+        }
+    }
+
+    if (connectionError) {
+        UI.showToast("Modo Offline: Algunos datos se guardarán solo localmente.", "warning");
+    } else {
+        console.log("App: All modules initialized successfully.");
     }
 
     // Default Page
