@@ -46,7 +46,8 @@ const PriceLists = {
         }
 
         if (searchInput) {
-            searchInput.addEventListener('input', (e) => this.filterList(e.target.value));
+            const debouncedSearch = UI.debounce((val) => this.filterList(val), 300);
+            searchInput.addEventListener('input', (e) => debouncedSearch(e.target.value));
         }
     },
 
@@ -169,13 +170,12 @@ const PriceLists = {
         const tbody = document.getElementById('price-lists-tbody');
         if (!tbody) return;
 
-        tbody.innerHTML = '';
-
         if (!data || data.length === 0) {
             tbody.innerHTML = `<tr><td colspan="4" class="text-center text-muted">No hay listas de precios disponibles</td></tr>`;
             return;
         }
 
+        const fragment = document.createDocumentFragment();
         data.forEach(item => {
             const tr = document.createElement('tr');
             const iconClass = this.getFileIcon(item.file_name);
@@ -191,25 +191,23 @@ const PriceLists = {
                 <td data-label="Fecha Subida">${new Date(item.date).toLocaleDateString()}</td>
                 <td data-label="Acciones">
                     <div class="table-actions">
-                        <button class="btn btn-ghost btn-sm view-plist-btn" data-id="${item.id}" title="Ver / Abrir">
-                            <i class='bx bx-show'></i> Ver
-                        </button>
-                        <button class="icon-btn delete-plist-btn" data-id="${item.id}" title="Eliminar">
-                            <i class='bx bx-trash'></i>
-                        </button>
+                        <button class="btn btn-ghost btn-sm view-plist-btn" data-id="${item.id}"><i class='bx bx-show'></i> Ver</button>
+                        <button class="icon-btn delete-plist-btn" data-id="${item.id}"><i class='bx bx-trash'></i></button>
                     </div>
                 </td>
             `;
-            tbody.appendChild(tr);
+            fragment.appendChild(tr);
         });
 
-        document.querySelectorAll('.view-plist-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => this.openFile(e.currentTarget.dataset.id));
+        tbody.innerHTML = '';
+        tbody.appendChild(fragment);
+
+        tbody.querySelectorAll('.view-plist-btn').forEach(btn => {
+            btn.onclick = () => this.openFile(btn.dataset.id);
         });
 
-        document.querySelectorAll('.delete-plist-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => this.deletePriceList(e.currentTarget.dataset.id));
+        tbody.querySelectorAll('.delete-plist-btn').forEach(btn => {
+            btn.onclick = () => this.deletePriceList(btn.dataset.id);
         });
     }
 };
-

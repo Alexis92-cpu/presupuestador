@@ -38,13 +38,14 @@ const Budgets = {
 
         btnClose.forEach(btn => btn.addEventListener('click', () => UI.closeModal('budget-editor-modal')));
 
+        const debouncedItemSearch = UI.debounce((val) => this.searchProducts(val), 300);
         if (itemSearch) {
-            itemSearch.addEventListener('input', (e) => this.searchProducts(e.target.value));
+            itemSearch.addEventListener('input', (e) => debouncedItemSearch(e.target.value));
         }
 
-        const clientSearch = document.getElementById('budget-client-search');
+        const debouncedClientSearch = UI.debounce((val) => this.searchClients(val), 300);
         if (clientSearch) {
-            clientSearch.addEventListener('input', (e) => this.searchClients(e.target.value));
+            clientSearch.addEventListener('input', (e) => debouncedClientSearch(e.target.value));
         }
 
         if (btnAddItem) {
@@ -67,7 +68,10 @@ const Budgets = {
         const statusFilter = document.getElementById('budget-status-filter');
 
         if (searchMain) {
-            searchMain.addEventListener('input', (e) => this.renderGrid(e.target.value, statusFilter.value));
+            const debouncedMainSearch = UI.debounce((val) => {
+                this.renderGrid(val, statusFilter.value);
+            }, 300);
+            searchMain.addEventListener('input', (e) => debouncedMainSearch(e.target.value));
         }
 
         if (statusFilter) {
@@ -387,12 +391,11 @@ const Budgets = {
         if (!grid) return;
 
         let filtered = [...this.list];
-
         if (query) {
             const q = query.toLowerCase();
             filtered = filtered.filter(b => 
-                b.clientName.toLowerCase().includes(q) || 
-                b.number.toLowerCase().includes(q)
+                (b.clientName || '').toLowerCase().includes(q) || 
+                (b.number || '').toLowerCase().includes(q)
             );
         }
 
@@ -405,11 +408,12 @@ const Budgets = {
             return;
         }
 
-        grid.innerHTML = '';
+        const fragment = document.createDocumentFragment();
         filtered.forEach(b => {
             const card = document.createElement('div');
             card.className = 'budget-card glass-panel';
             const statusClass = (b.status || 'Borrador').toLowerCase();
+            
             card.innerHTML = `
                 <div class="budget-card-header">
                     <span class="budget-num">${b.number}</span>
@@ -425,14 +429,21 @@ const Budgets = {
                 </div>
                 <div class="budget-card-footer">
                     <div class="footer-actions">
-                        <button class="btn btn-ghost btn-sm" onclick="Budgets.openPreview('${b.id}')"><i class='bx bx-show'></i></button>
-                        <button class="btn btn-ghost btn-sm" onclick="Budgets.openEditor('${b.id}')"><i class='bx bx-edit-alt'></i></button>
+                        <button class="btn btn-ghost btn-sm btn-preview" data-id="${b.id}"><i class='bx bx-show'></i></button>
+                        <button class="btn btn-ghost btn-sm btn-edit" data-id="${b.id}"><i class='bx bx-edit-alt'></i></button>
                     </div>
-                    <button class="icon-btn danger micro" onclick="Budgets.deleteBudget('${b.id}')"><i class='bx bx-trash'></i></button>
+                    <button class="icon-btn danger micro btn-delete" data-id="${b.id}"><i class='bx bx-trash'></i></button>
                 </div>
             `;
-            grid.appendChild(card);
+            fragment.appendChild(card);
         });
+
+        grid.innerHTML = '';
+        grid.appendChild(fragment);
+
+        grid.querySelectorAll('.btn-preview').forEach(btn => btn.onclick = () => this.openPreview(btn.dataset.id));
+        grid.querySelectorAll('.btn-edit').forEach(btn => btn.onclick = () => this.openEditor(btn.dataset.id));
+        grid.querySelectorAll('.btn-delete').forEach(btn => btn.onclick = () => this.deleteBudget(btn.dataset.id));
     },
 
     async deleteBudget(id) {

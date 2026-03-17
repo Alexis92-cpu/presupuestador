@@ -100,8 +100,11 @@ const Products = {
         }
 
         if (searchInput) {
+            const debouncedSearch = UI.debounce((query) => {
+                this.filterList(query);
+            }, 300);
             searchInput.addEventListener('input', (e) => {
-                this.filterList(e.target.value);
+                debouncedSearch(e.target.value);
             });
         }
 
@@ -211,14 +214,12 @@ const Products = {
         const tbody = document.getElementById('products-list');
         if (!tbody) return;
 
-        console.log("Products: Rendering table with", this.list.length, "items");
-        tbody.innerHTML = '';
-
         if (this.list.length === 0) {
             tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted">No hay productos disponibles</td></tr>`;
             return;
         }
 
+        const fragment = document.createDocumentFragment();
         this.list.forEach(p => {
             const tr = document.createElement('tr');
             const priceArs = p.price_usd * Exchange.rate;
@@ -229,23 +230,22 @@ const Products = {
                 <td data-label="Precio (USD)" class="price-usd">${UI.formatCurrency(p.price_usd, 'USD')}</td>
                 <td data-label="Precio (ARS)">${UI.formatCurrency(priceArs, 'ARS')}</td>
                 <td data-label="Acciones">
-                    <button class="icon-btn edit-btn" data-id="${p.id}">
-                        <i class='bx bx-edit-alt'></i>
-                    </button>
-                    <button class="icon-btn delete-btn" data-id="${p.id}">
-                        <i class='bx bx-trash'></i>
-                    </button>
+                    <button class="icon-btn edit-btn" data-id="${p.id}"><i class='bx bx-edit-alt'></i></button>
+                    <button class="icon-btn delete-btn" data-id="${p.id}"><i class='bx bx-trash'></i></button>
                 </td>
             `;
-            tbody.appendChild(tr);
+            fragment.appendChild(tr);
         });
 
-        document.querySelectorAll('.edit-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => this.openModalForEdit(e.currentTarget.dataset.id));
+        tbody.innerHTML = '';
+        tbody.appendChild(fragment);
+
+        tbody.querySelectorAll('.edit-btn').forEach(btn => {
+            btn.onclick = () => this.openModalForEdit(btn.dataset.id);
         });
 
-        document.querySelectorAll('.delete-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => this.deleteProduct(e.currentTarget.dataset.id));
+        tbody.querySelectorAll('.delete-btn').forEach(btn => {
+            btn.onclick = () => this.deleteProduct(btn.dataset.id);
         });
     }
 };

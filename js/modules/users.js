@@ -40,7 +40,12 @@ const Users = {
         }
 
         if (searchInput) {
-            searchInput.addEventListener('input', (e) => this.filterList(e.target.value));
+            const debouncedSearch = UI.debounce((query) => {
+                this.filterList(query);
+            }, 300);
+            searchInput.addEventListener('input', (e) => {
+                debouncedSearch(e.target.value);
+            });
         }
     },
 
@@ -163,43 +168,41 @@ const Users = {
         const tbody = document.getElementById('users-list');
         if (!tbody) return;
 
-        tbody.innerHTML = '';
-
         if (!data || data.length === 0) {
             tbody.innerHTML = `<tr><td colspan="4" class="text-center text-muted">Aún no hay usuarios</td></tr>`;
             return;
         }
 
+        const fragment = document.createDocumentFragment();
         data.forEach(u => {
-            const roleBadge = u.role === 'admin' 
+            const roleBadge = (u.role || '').toLowerCase() === 'admin' 
                 ? `<span style="color: var(--warning); font-weight: 500;">Administrador</span>` 
                 : `<span class="text-muted">Vendedor</span>`;
                 
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td data-label="Nombre"><strong>${u.fullname || u.name || 'Sin nombre'}</strong></td>
+                <td data-label="Nombre"><strong>${u.fullname || u.name || u.username}</strong></td>
                 <td data-label="Usuario">${u.username}</td>
                 <td data-label="Rol">${roleBadge}</td>
                 <td data-label="Acciones">
-                    <button class="icon-btn edit-user-btn" data-id="${u.id}" title="Editar">
-                        <i class='bx bx-edit-alt'></i>
-                    </button>
+                    <button class="icon-btn edit-user-btn" data-id="${u.id}"><i class='bx bx-edit-alt'></i></button>
                     ${u.username !== 'admin' ? `
-                    <button class="icon-btn delete-user-btn" data-id="${u.id}" title="Eliminar">
-                        <i class='bx bx-trash'></i>
-                    </button>
+                    <button class="icon-btn delete-user-btn" data-id="${u.id}"><i class='bx bx-trash'></i></button>
                     ` : ''}
                 </td>
             `;
-            tbody.appendChild(tr);
+            fragment.appendChild(tr);
         });
 
-        document.querySelectorAll('.edit-user-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => this.openModalForEdit(e.currentTarget.dataset.id));
+        tbody.innerHTML = '';
+        tbody.appendChild(fragment);
+
+        tbody.querySelectorAll('.edit-user-btn').forEach(btn => {
+            btn.onclick = () => this.openModalForEdit(btn.dataset.id);
         });
 
-        document.querySelectorAll('.delete-user-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => this.deleteUser(e.currentTarget.dataset.id));
+        tbody.querySelectorAll('.delete-user-btn').forEach(btn => {
+            btn.onclick = () => this.deleteUser(btn.dataset.id);
         });
     }
 };

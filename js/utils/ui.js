@@ -1,5 +1,14 @@
 // UI Interaction Utilities
 const UI = {
+    // Debounce helper for optimization
+    debounce(func, wait) {
+        let timeout;
+        return function(...args) {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => func.apply(this, args), wait);
+        };
+    },
+
     showToast(message, type = 'info') {
         const container = document.getElementById('toast-container');
         if (!container) return;
@@ -70,18 +79,20 @@ const UI = {
             'products': 'Gestión de Productos',
             'clients': 'Gestión de Clientes',
             'budgets': 'Presupuestos',
-            'users': 'Gestión de Usuarios'
+            'users': 'Gestión de Usuarios',
+            'price-lists': 'Listas de Precios'
         };
         if (titleSpan && titles[pageId]) titleSpan.textContent = titles[pageId];
         
         // Close sidebar on mobile
         document.querySelector('.sidebar')?.classList.remove('open');
 
-        // Logic-specific refreshes
+        // Logic-specific refreshes (Lazy logic: only init if data is empty or first time)
         if (pageId === 'products') Products.init();
         if (pageId === 'clients') Clients.init();
         if (pageId === 'users') Users.init();
         if (pageId === 'budgets') Budgets.init();
+        if (pageId === 'price-lists') PriceLists.init();
     },
 
     formatCurrency(amount, currency = 'USD') {

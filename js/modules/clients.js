@@ -42,7 +42,12 @@ const Clients = {
         if (btnAdd) btnAdd.addEventListener('click', () => this.openModalForAdd());
         
         if (searchInput) {
-            searchInput.addEventListener('input', (e) => this.filterList(e.target.value));
+            const debouncedSearch = UI.debounce((query) => {
+                this.filterList(query);
+            }, 300);
+            searchInput.addEventListener('input', (e) => {
+                debouncedSearch(e.target.value);
+            });
         }
 
         if (form) {
@@ -139,13 +144,12 @@ const Clients = {
         const tbody = document.getElementById('clients-list');
         if (!tbody) return;
 
-        tbody.innerHTML = '';
-
         if (!data || data.length === 0) {
             tbody.innerHTML = `<tr><td colspan="4" class="text-center text-muted">Aún no hay clientes</td></tr>`;
             return;
         }
 
+        const fragment = document.createDocumentFragment();
         data.forEach(c => {
             const tr = document.createElement('tr');
             tr.innerHTML = `
@@ -153,23 +157,22 @@ const Clients = {
                 <td data-label="Teléfono">${c.phone || '-'}</td>
                 <td data-label="Email"><a href="mailto:${c.email}">${c.email || '-'}</a></td>
                 <td data-label="Acciones">
-                    <button class="icon-btn edit-client-btn" data-id="${c.id}" title="Editar">
-                        <i class='bx bx-edit-alt'></i>
-                    </button>
-                    <button class="icon-btn delete-client-btn" data-id="${c.id}" title="Eliminar">
-                        <i class='bx bx-trash'></i>
-                    </button>
+                    <button class="icon-btn edit-client-btn" data-id="${c.id}"><i class='bx bx-edit-alt'></i></button>
+                    <button class="icon-btn delete-client-btn" data-id="${c.id}"><i class='bx bx-trash'></i></button>
                 </td>
             `;
-            tbody.appendChild(tr);
+            fragment.appendChild(tr);
         });
 
-        document.querySelectorAll('.edit-client-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => this.openModalForEdit(e.currentTarget.dataset.id));
+        tbody.innerHTML = '';
+        tbody.appendChild(fragment);
+
+        tbody.querySelectorAll('.edit-client-btn').forEach(btn => {
+            btn.onclick = () => this.openModalForEdit(btn.dataset.id);
         });
 
-        document.querySelectorAll('.delete-client-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => this.deleteClient(e.currentTarget.dataset.id));
+        tbody.querySelectorAll('.delete-client-btn').forEach(btn => {
+            btn.onclick = () => this.deleteClient(btn.dataset.id);
         });
     }
 };
