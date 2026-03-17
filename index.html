@@ -215,6 +215,26 @@
                            <i class='bx bx-plus'></i> Crear Presupuesto
                        </button>
                     </div>
+
+                    <!-- Filters Bar -->
+                    <div class="card glass-panel mb-4" style="margin-bottom: var(--space-4);">
+                        <div class="card-header" style="flex-wrap: wrap; gap: var(--space-3);">
+                            <div class="search-bar" style="flex: 1; min-width: 250px;">
+                                <i class='bx bx-search'></i>
+                                <input type="text" id="budget-main-search" placeholder="Buscar por cliente o número...">
+                            </div>
+                            <div class="filter-group" style="display: flex; gap: var(--space-2); align-items: center;">
+                                <label style="font-size: 13px; color: var(--text-secondary); white-space: nowrap;">Estado:</label>
+                                <select id="budget-status-filter" class="styled-select" style="padding: 8px 12px; height: 40px;">
+                                    <option value="all">Todos</option>
+                                    <option value="Borrador">Borrador</option>
+                                    <option value="Enviado">Enviado</option>
+                                    <option value="Aprobado">Aprobado</option>
+                                    <option value="Rechazado">Rechazado</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
                     
                     <div id="budgets-grid" class="budgets-grid">
                         <!-- Budget cards will be rendered here -->
@@ -299,46 +319,58 @@
                             <button class="icon-btn close-budget-modal"><i class='bx bx-x'></i></button>
                         </div>
                         
-                        <form id="budget-form-main">
-                            <div class="budget-editor-grid">
-                                <!-- Step 1: Client & General Info -->
-                                <div class="budget-editor-column">
-                                    <div class="input-group">
-                                        <label>Seleccionar Cliente</label>
-                                        <select id="budget-client-select" class="styled-select">
-                                            <option value="">-- Seleccionar --</option>
-                                        </select>
-                                    </div>
-                                    <div class="grid-2-cols">
-                                        <div class="input-group">
-                                            <label>N° Presupuesto</label>
-                                            <input type="text" id="budget-number" readonly class="input-readonly">
-                                        </div>
-                                        <div class="input-group">
-                                            <label>Fecha</label>
-                                            <input type="text" id="budget-date-today" readonly class="input-readonly">
-                                        </div>
-                                    </div>
-                                    <div class="input-group">
-                                        <label>Días de Validez</label>
-                                        <input type="number" id="budget-validity" value="7" min="1">
-                                    </div>
-                                    <div class="input-group">
-                                        <label>Observaciones (Subtítulo)</label>
-                                        <textarea id="budget-observations" rows="2" placeholder="Notas adicionales..."></textarea>
-                                    </div>
-                                </div>
+                                    <form id="budget-form-main">
+                                        <input type="hidden" id="edit-budget-id">
+                                        <div class="budget-editor-grid">
+                                            <!-- Step 1: Client & General Info -->
+                                            <div class="budget-editor-column">
+                                                <div class="grid-2-cols">
+                                                    <div class="input-group">
+                                                        <label>N° Presupuesto</label>
+                                                        <input type="text" id="budget-number" readonly class="input-readonly">
+                                                    </div>
+                                                    <div class="input-group">
+                                                        <label>Estado</label>
+                                                        <select id="budget-status" class="styled-select">
+                                                            <option value="Borrador">Borrador</option>
+                                                            <option value="Enviado">Enviado</option>
+                                                            <option value="Aprobado">Aprobado</option>
+                                                            <option value="Rechazado">Rechazado</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                                <div class="input-group">
+                                                    <label>Seleccionar Cliente</label>
+                                                    <select id="budget-client-select" class="styled-select">
+                                                        <option value="">-- Seleccionar --</option>
+                                                    </select>
+                                                </div>
+                                                <div class="grid-2-cols">
+                                                    <div class="input-group">
+                                                        <label>Fecha</label>
+                                                        <input type="text" id="budget-date-today" readonly class="input-readonly">
+                                                    </div>
+                                                    <div class="input-group">
+                                                        <label>Días de Validez</label>
+                                                        <input type="number" id="budget-validity" value="7" min="1">
+                                                    </div>
+                                                </div>
+                                                <div class="input-group">
+                                                    <label>Observaciones (Subtítulo)</label>
+                                                    <textarea id="budget-observations" rows="2" placeholder="Notas adicionales..."></textarea>
+                                                </div>
+                                            </div>
 
-                                <!-- Step 2: Item Selection -->
-                                <div class="budget-editor-column">
-                                    <div class="input-group">
-                                        <label>Agregar Producto/Servicio</label>
-                                        <div class="input-icon-wrapper">
-                                            <i class='bx bx-search'></i>
-                                            <input type="text" id="budget-item-search" placeholder="Escriba para buscar...">
-                                            <div id="search-results-popover" class="search-popover hidden"></div>
-                                        </div>
-                                    </div>
+                                            <!-- Step 2: Item Selection -->
+                                            <div class="budget-editor-column">
+                                                <div class="input-group">
+                                                    <label>Agregar Producto/Servicio</label>
+                                                    <div class="input-icon-wrapper">
+                                                        <i class='bx bx-search'></i>
+                                                        <input type="text" id="budget-item-search" placeholder="Escriba para buscar...">
+                                                        <div id="search-results-popover" class="search-popover hidden"></div>
+                                                    </div>
+                                                </div>
                                     
                                     <div class="item-config-grid hidden" id="item-config-panel">
                                         <div class="input-group">

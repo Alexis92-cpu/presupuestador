@@ -57,6 +57,18 @@ const Budgets = {
             });
         }
 
+        // Filters
+        const searchMain = document.getElementById('budget-main-search');
+        const statusFilter = document.getElementById('budget-status-filter');
+
+        if (searchMain) {
+            searchMain.addEventListener('input', (e) => this.renderGrid(e.target.value, statusFilter.value));
+        }
+
+        if (statusFilter) {
+            statusFilter.addEventListener('change', (e) => this.renderGrid(searchMain.value, e.target.value));
+        }
+
         // Preview actions
         const btnPrint = document.getElementById('btn-print-doc');
         const btnExport = document.getElementById('btn-export-pdf');
@@ -75,21 +87,41 @@ const Budgets = {
         });
     },
 
-    openEditor() {
+    openEditor(id = null) {
         this.currentItems = [];
         this.selectedProduct = null;
         
         const form = document.getElementById('budget-form-main');
         if (form) form.reset();
 
-        document.getElementById('budget-number').value = this.generateBudgetNumber();
-        document.getElementById('budget-date-today').value = new Date().toLocaleDateString();
+        document.getElementById('edit-budget-id').value = '';
+        document.getElementById('budget-status').value = 'Borrador';
+        document.getElementById('item-config-panel').classList.add('hidden');
+
+        if (id) {
+            // Edit mode
+            const b = this.list.find(item => item.id == id);
+            if (!b) return;
+
+            document.getElementById('edit-budget-id').value = b.id;
+            document.getElementById('budget-number').value = b.number;
+            document.getElementById('budget-status').value = b.status || 'Borrador';
+            document.getElementById('budget-date-today').value = new Date(b.date).toLocaleDateString();
+            document.getElementById('budget-validity').value = b.validity;
+            document.getElementById('budget-observations').value = b.observations;
+            
+            this.currentItems = [...b.items];
+            this.populateClientsSelect();
+            document.getElementById('budget-client-select').value = b.clientId;
+        } else {
+            // New mode
+            document.getElementById('budget-number').value = this.generateBudgetNumber();
+            document.getElementById('budget-date-today').value = new Date().toLocaleDateString();
+            this.populateClientsSelect();
+        }
         
-        this.populateClientsSelect();
         this.renderItemsList();
         this.calculateTotals();
-        
-        document.getElementById('item-config-panel').classList.add('hidden');
         UI.openModal('budget-editor-modal');
     },
 
@@ -235,6 +267,7 @@ const Budgets = {
         const clientSelect = document.getElementById('budget-client-select');
         const clientId = clientSelect.value;
         const clientName = clientSelect.options[clientSelect.selectedIndex]?.text;
+        const budgetId = document.getElementById('edit-budget-id').value;
 
         if (!clientId) {
             UI.showToast('Por favor, selecciona un cliente.', 'error');
@@ -249,11 +282,12 @@ const Budgets = {
         const btnSave = document.querySelector('#budget-form-main button[type="submit"]');
         if (btnSave) btnSave.disabled = true;
 
-        const newBudget = {
+        const budgetData = {
             number: document.getElementById('budget-number').value,
-            date: new Date().toISOString(),
+            date: budgetId ? this.list.find(b => b.id == budgetId).date : new Date().toISOString(),
             clientId,
             clientName,
+            status: document.getElementById('budget-status').value,
             validity: document.getElementById('budget-validity').value,
             observations: document.getElementById('budget-observations').value,
             items: [...this.currentItems],
@@ -263,14 +297,19 @@ const Budgets = {
         };
 
         try {
-            const saved = await DB.insert('budgets', newBudget);
+            if (budgetId) {
+                await DB.update('budgets', budgetId, budgetData);
+                UI.showToast('Presupuesto actualizado.', 'success');
+            } else {
+                const saved = await DB.insert('budgets', budgetData);
+                UI.showToast('Presupuesto creado con éxito.', 'success');
+                // Open preview automatically for new ones
+                this.openPreview(saved.id);
+            }
+            
             await this.loadBudgets();
             this.renderGrid();
             UI.closeModal('budget-editor-modal');
-            UI.showToast('Presupuesto guardado con éxito.', 'success');
-            
-            // Open preview automatically
-            this.openPreview(saved.id);
         } catch (error) {
             console.error('Budgets: Error saving:', error);
             UI.showToast('Error al guardar presupuesto', 'error');
@@ -279,25 +318,41 @@ const Budgets = {
         }
     },
 
-    renderGrid() {
+    renderGrid(query = '', status = 'all') {
         const grid = document.getElementById('budgets-grid');
         if (!grid) return;
 
-        if (this.list.length === 0) {
-            grid.innerHTML = `<div class="empty-state text-center text-muted"><i class='bx bx-file' style='font-size: 3rem;'></i><p>No hay presupuestos disponibles.</p></div>`;
+        let filtered = [...this.list];
+
+        if (query) {
+            const q = query.toLowerCase();
+            filtered = filtered.filter(b => 
+                b.clientName.toLowerCase().includes(q) || 
+                b.number.toLowerCase().includes(q)
+            );
+        }
+
+        if (status !== 'all') {
+            filtered = filtered.filter(b => b.status === status);
+        }
+
+        if (filtered.length === 0) {
+            grid.innerHTML = `<div class="empty-state text-center text-muted"><i class='bx bx-search' style='font-size: 3rem;'></i><p>No se encontraron presupuestos.</p></div>`;
             return;
         }
 
         grid.innerHTML = '';
-        this.list.forEach(b => {
+        filtered.forEach(b => {
             const card = document.createElement('div');
             card.className = 'budget-card glass-panel';
+            const statusClass = (b.status || 'Borrador').toLowerCase();
             card.innerHTML = `
                 <div class="budget-card-header">
                     <span class="budget-num">${b.number}</span>
-                    <span class="budget-date">${new Date(b.date).toLocaleDateString()}</span>
+                    <span class="status-badge ${statusClass}">${b.status || 'Borrador'}</span>
                 </div>
                 <div class="budget-card-body">
+                    <span class="budget-date">${new Date(b.date).toLocaleDateString()}</span>
                     <h3 class="client-name">${b.clientName}</h3>
                     <div class="budget-totals">
                         <div class="total-main">${UI.formatCurrency(b.totalArs, 'ARS')}</div>
@@ -305,8 +360,11 @@ const Budgets = {
                     </div>
                 </div>
                 <div class="budget-card-footer">
-                    <button class="btn btn-ghost btn-sm" onclick="Budgets.openPreview('${b.id}')"><i class='bx bx-show'></i> Ver</button>
-                    <button class="icon-btn danger" onclick="Budgets.deleteBudget('${b.id}')"><i class='bx bx-trash'></i></button>
+                    <div class="footer-actions">
+                        <button class="btn btn-ghost btn-sm" onclick="Budgets.openPreview('${b.id}')"><i class='bx bx-show'></i></button>
+                        <button class="btn btn-ghost btn-sm" onclick="Budgets.openEditor('${b.id}')"><i class='bx bx-edit-alt'></i></button>
+                    </div>
+                    <button class="icon-btn danger micro" onclick="Budgets.deleteBudget('${b.id}')"><i class='bx bx-trash'></i></button>
                 </div>
             `;
             grid.appendChild(card);
