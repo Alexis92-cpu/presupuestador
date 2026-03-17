@@ -40,10 +40,10 @@ const Auth = {
             if (foundUser) {
                 store.set('session', { 
                     loggedIn: true, 
-                    user: foundUser.fullname, 
+                    user: foundUser.fullname || foundUser.name || foundUser.username, 
                     role: foundUser.role 
                 }, false);
-                UI.showToast(`Bienvenido, ${foundUser.fullname}`, 'success');
+                UI.showToast(`Bienvenido, ${foundUser.fullname || foundUser.name || foundUser.username}`, 'success');
                 this.transitionToApp();
             } else {
                 UI.showToast('Credenciales incorrectas', 'error');

@@ -61,7 +61,7 @@ const Users = {
         if (form) form.reset();
 
         document.getElementById('user-id').value = user.id;
-        document.getElementById('usr-fullname').value = user.fullname;
+        document.getElementById('usr-fullname').value = user.fullname || user.name || '';
         document.getElementById('usr-username').value = user.username;
         document.getElementById('usr-role').value = user.role || 'user';
         
@@ -75,15 +75,17 @@ const Users = {
     async saveUserFromForm() {
         const idInput = document.getElementById('user-id').value;
         const passwordInput = document.getElementById('usr-password').value;
-        const payload = {
-            fullname: document.getElementById('usr-fullname').value,
+        const userNameValue = document.getElementById('usr-fullname').value;
+
+        // Intentamos enviar tanto 'fullname' como 'name' con un truco:
+        // Primero intentamos con 'fullname' (nuevo estándar) y si falla reintentamos con 'name'
+        let payload = {
             username: document.getElementById('usr-username').value,
-            role: document.getElementById('usr-role').value
+            role: document.getElementById('usr-role').value,
+            fullname: userNameValue // Intentamos el ideal
         };
 
-        if (passwordInput) {
-            payload.password = passwordInput;
-        }
+        if (passwordInput) payload.password = passwordInput;
 
         const btn = document.querySelector('#user-form button[type="submit"]');
         if (btn) {
@@ -93,17 +95,30 @@ const Users = {
 
         try {
             if (idInput) {
-                await DB.update('users', idInput, payload);
+                try {
+                    await DB.update('users', idInput, payload);
+                } catch (e) {
+                    // Si falla por columna faltante, probamos con 'name'
+                    delete payload.fullname;
+                    payload.name = userNameValue;
+                    await DB.update('users', idInput, payload);
+                }
                 UI.showToast('Usuario actualizado.', 'success');
             } else {
-                await DB.insert('users', payload);
+                try {
+                    await DB.insert('users', payload);
+                } catch (e) {
+                    delete payload.fullname;
+                    payload.name = userNameValue;
+                    await DB.insert('users', payload);
+                }
                 UI.showToast('Usuario creado exitosamente.', 'success');
             }
             await this.loadUsers();
             UI.closeModal('user-modal');
         } catch (error) {
-            UI.showToast('Error al guardar', 'error');
-            console.error(error);
+            UI.showToast('Error al guardar: la base de datos no está lista', 'error');
+            console.error("Users Save Error:", error);
         } finally {
             if (btn) {
                 btn.disabled = false;
@@ -131,7 +146,7 @@ const Users = {
         }
         const lowerQuery = query.toLowerCase();
         const filtered = this.list.filter(u => 
-            u.fullname.toLowerCase().includes(lowerQuery) || 
+            (u.fullname || u.name || '').toLowerCase().includes(lowerQuery) || 
             u.username.toLowerCase().includes(lowerQuery)
         );
         this.renderTable(filtered);
@@ -155,7 +170,7 @@ const Users = {
                 
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td data-label="Nombre"><strong>${u.fullname}</strong></td>
+                <td data-label="Nombre"><strong>${u.fullname || u.name || 'Sin nombre'}</strong></td>
                 <td data-label="Usuario">${u.username}</td>
                 <td data-label="Rol">${roleBadge}</td>
                 <td data-label="Acciones">
