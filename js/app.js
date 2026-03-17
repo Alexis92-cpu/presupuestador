@@ -60,9 +60,4 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Default Page
     UI.switchPage(store.get('current_page') || 'budgets');
-
-    // 4. Hide Loader
-    setTimeout(() => {
-        document.getElementById('initial-loader')?.classList.add('fade-out');
-    }, 500);
 });

@@ -140,7 +140,11 @@ const Products = {
             priceUsd: priceUsd
         };
 
+        const btn = document.querySelector('#product-form button[type="submit"]');
+        if (btn) btn.disabled = true;
+
         try {
+            console.log("Products: Saving...", payload);
             if (idInput) {
                 await DB.update('products', idInput, payload);
                 UI.showToast('Producto actualizado.', 'success');
@@ -153,7 +157,10 @@ const Products = {
             this.renderTable();
             UI.closeModal('product-modal');
         } catch (error) {
+            console.error("Products: Error saving:", error);
             UI.showToast('Error al guardar producto', 'error');
+        } finally {
+            if (btn) btn.disabled = false;
         }
     },
 
