@@ -32,11 +32,16 @@ const DB = {
         if (supabaseClient) {
             const { data, error } = await supabaseClient.from(table).select('*');
             if (error) {
-                console.error(`DB: Error fetching from ${table}:`, error);
-                // Fallback only if it's a critical connection error or if specifically desired
+                console.error(`DB/Supabase: Error in table "${table}":`, error);
+                
+                // If the error confirms a connection issue or table missing, we fallback
+                // but we also keep a record of the original error for diagnostics
                 if (error.code === 'PGRST301' || error.message?.includes('Fetch')) {
                     return this.localGet(table);
                 }
+                
+                // Add the table name to the error so we know WHICH module failed
+                error.targetTable = table;
                 throw error;
             }
             return data;
