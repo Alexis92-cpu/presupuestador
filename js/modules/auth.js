@@ -96,30 +96,27 @@ const Auth = {
 
     logout() {
         store.remove('session', false);
-        UI.showToast('Sesión cerrada', 'info');
+        UI.showToast('Sesión cerrada correctamente', 'info');
         
         const loginView = document.getElementById('login-view');
         const dashboardView = document.getElementById('dashboard-view');
 
-        dashboardView.classList.add('view-exit-active');
+        // Immediate switch
+        dashboardView.classList.remove('active', 'split-layout');
+        dashboardView.style.display = 'none';
         dashboardView.style.pointerEvents = 'none';
 
-        setTimeout(() => {
-            dashboardView.classList.remove('active', 'view-exit-active', 'split-layout');
-            dashboardView.style.display = 'none';
-            
-            loginView.classList.add('active', 'view-enter-active');
-            loginView.style.display = 'flex'; 
-            loginView.style.pointerEvents = 'all';
+        loginView.classList.add('active');
+        loginView.style.display = 'flex'; 
+        loginView.style.pointerEvents = 'all';
+        loginView.style.visibility = 'visible';
+        loginView.style.zIndex = '100';
 
-            // Reset inputs
-            document.getElementById('username').value = '';
-            document.getElementById('password').value = '';
-            
-            setTimeout(() => {
-                loginView.classList.remove('view-enter-active');
-            }, 600);
-        }, 600);
+        // Reset inputs
+        const userInp = document.getElementById('username');
+        const passInp = document.getElementById('password');
+        if (userInp) userInp.value = '';
+        if (passInp) passInp.value = '';
     },
 
     checkSession() {
