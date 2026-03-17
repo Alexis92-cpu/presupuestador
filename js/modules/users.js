@@ -32,7 +32,7 @@ const Users = {
         if (form) {
             form.addEventListener('submit', async (e) => {
                 e.preventDefault();
-                this.saveUserFromForm();
+                await this.saveUserFromForm();
             });
         }
 
@@ -79,13 +79,14 @@ const Users = {
         };
 
         if (passwordInput) {
-            // Only update password if user typed a new one. In a real scenario it should be hashed.
             payload.password = passwordInput;
         }
 
         const btn = document.querySelector('#user-form button[type="submit"]');
-        btn.disabled = true;
-        btn.innerHTML = 'Guardando...';
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = 'Guardando...';
+        }
 
         try {
             if (idInput) {
@@ -99,9 +100,12 @@ const Users = {
             UI.closeModal('user-modal');
         } catch (error) {
             UI.showToast('Error al guardar', 'error');
+            console.error(error);
         } finally {
-            btn.disabled = false;
-            btn.innerHTML = 'Guardar Usuario';
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = 'Guardar Usuario';
+            }
         }
     },
 
@@ -148,10 +152,10 @@ const Users = {
                 
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td><strong>${u.fullname}</strong></td>
-                <td>${u.username}</td>
-                <td>${roleBadge}</td>
-                <td>
+                <td data-label="Nombre"><strong>${u.fullname}</strong></td>
+                <td data-label="Usuario">${u.username}</td>
+                <td data-label="Rol">${roleBadge}</td>
+                <td data-label="Acciones">
                     <button class="icon-btn edit-user-btn" data-id="${u.id}" title="Editar">
                         <i class='bx bx-edit-alt'></i>
                     </button>

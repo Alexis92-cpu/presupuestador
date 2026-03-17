@@ -52,6 +52,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         await Clients.init();
         await Users.init();
         await Budgets.init();
+        if (typeof PriceLists !== 'undefined') await PriceLists.init();
         console.log("App: All modules initialized.");
     } catch (err) {
         console.error("App: Fatal error during module initialization:", err);

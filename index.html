@@ -84,6 +84,9 @@
                 <button class="nav-item" data-target="users">
                     <i class='bx bx-shield-quarter'></i> Usuarios
                 </button>
+                <button class="nav-item" data-target="price-lists">
+                    <i class='bx bx-list-check'></i> Listas de Precios
+                </button>
             </nav>
             <div class="sidebar-footer">
                 <button id="logout-btn" class="nav-item btn-danger-outline">
@@ -294,7 +297,7 @@
                             </div>
                         </div>
                         <div class="table-container">
-                            <table id="users-table" class="data-table">
+                            <table class="data-table">
                                 <thead>
                                     <tr>
                                         <th>Nombre</th>
@@ -305,6 +308,39 @@
                                 </thead>
                                 <tbody id="users-list">
                                     <tr><td colspan="4" class="text-center text-muted">Cargando datos...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Price Lists Page -->
+                <section id="page-price-lists" class="page-content">
+                    <div class="page-header">
+                        <h2>Listas de Precios</h2>
+                        <button id="btn-add-price-list" class="btn btn-primary">
+                            <i class='bx bx-upload'></i> Subir Lista
+                        </button>
+                    </div>
+                    <div class="card glass-panel">
+                        <div class="card-header">
+                            <div class="search-bar">
+                                <i class='bx bx-search'></i>
+                                <input type="text" id="price-list-search" placeholder="Buscar por proveedor...">
+                            </div>
+                        </div>
+                        <div class="table-container">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Proveedor</th>
+                                        <th>Archivo / Link</th>
+                                        <th>Fecha Subida</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="price-lists-tbody">
+                                    <tr><td colspan="4" class="text-center text-muted">Aún no hay listas subidas</td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -540,6 +576,30 @@
                         </form>
                     </div>
                 </div>
+                    <!-- Price List Modal -->
+                <div id="price-list-modal" class="modal-overlay hidden">
+                    <div class="modal glass-panel">
+                        <div class="modal-header">
+                            <h3>Subir Lista de Precios</h3>
+                            <button class="icon-btn close-modal"><i class='bx bx-x'></i></button>
+                        </div>
+                        <form id="price-list-form">
+                            <div class="input-group">
+                                <label for="plist-provider">Nombre del Proveedor</label>
+                                <input type="text" id="plist-provider" placeholder="Ej: Hikvision, Dahua..." required>
+                            </div>
+                            <div class="input-group">
+                                <label for="plist-file">Archivo (PDF / Excel / Link)</label>
+                                <input type="text" id="plist-file-link" placeholder="Link del archivo o nombre del archivo" required>
+                                <small class="helper-text">Pedes subir el link directo o el nombre del catálogo.</small>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-ghost close-modal">Cancelar</button>
+                                <button type="submit" class="btn btn-primary">Guardar Lista</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
 
             </div>
         </div>
@@ -556,6 +616,7 @@
     <script src="js/modules/clients.js" defer></script>
     <script src="js/modules/users.js" defer></script>
     <script src="js/modules/budgets.js" defer></script>
+    <script src="js/modules/priceLists.js" defer></script>
     <script src="js/app.js" defer></script>
 </body>
 </html>
