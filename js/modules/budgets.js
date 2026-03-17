@@ -43,6 +43,7 @@ const Budgets = {
             itemSearch.addEventListener('input', (e) => debouncedItemSearch(e.target.value));
         }
 
+        const clientSearch = document.getElementById('budget-client-search');
         const debouncedClientSearch = UI.debounce((val) => this.searchClients(val), 300);
         if (clientSearch) {
             clientSearch.addEventListener('input', (e) => debouncedClientSearch(e.target.value));
