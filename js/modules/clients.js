@@ -23,6 +23,17 @@ const Clients = {
         }
     },
 
+    async quickAdd(name) {
+        try {
+            const newClient = await DB.insert('clients', { name, email: '', phone: '' });
+            await this.loadClients();
+            return newClient;
+        } catch (error) {
+            console.error("Error en quickAdd:", error);
+            throw error;
+        }
+    },
+
     setupListeners() {
         const btnAdd = document.getElementById('btn-add-client');
         const searchInput = document.getElementById('client-search');

@@ -376,10 +376,13 @@
                                                     </div>
                                                 </div>
                                                 <div class="input-group">
-                                                    <label>Seleccionar Cliente</label>
-                                                    <select id="budget-client-select" class="styled-select">
-                                                        <option value="">-- Seleccionar --</option>
-                                                    </select>
+                                                    <label>Buscar o Agregar Cliente</label>
+                                                    <div class="input-icon-wrapper">
+                                                        <i class='bx bx-user'></i>
+                                                        <input type="text" id="budget-client-search" placeholder="Nombre del cliente..." autocomplete="off">
+                                                        <div id="client-search-popover" class="search-popover hidden"></div>
+                                                        <input type="hidden" id="budget-client-id">
+                                                    </div>
                                                 </div>
                                                 <div class="grid-2-cols">
                                                     <div class="input-group">

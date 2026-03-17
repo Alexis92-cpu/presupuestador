@@ -37,10 +37,23 @@ const Products = {
         try {
             this.list = await DB.get('products');
             this.originalList = [...this.list];
+            this.renderTable();
             console.log("Products: List loaded successfully", this.list.length, "items");
         } catch (error) {
             console.error('Error loading products:', error);
+            UI.showToast('Error cargando catálogo', 'error');
             this.list = [];
+        }
+    },
+
+    async quickAdd(name, price_usd = 0) {
+        try {
+            const newItem = await DB.insert('products', { name, price_usd, category: 'General' });
+            await this.loadProducts();
+            return newItem;
+        } catch (error) {
+            console.error("Error en quickAdd product:", error);
+            throw error;
         }
     },
 

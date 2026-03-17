@@ -42,6 +42,11 @@ const Budgets = {
             itemSearch.addEventListener('input', (e) => this.searchProducts(e.target.value));
         }
 
+        const clientSearch = document.getElementById('budget-client-search');
+        if (clientSearch) {
+            clientSearch.addEventListener('input', (e) => this.searchClients(e.target.value));
+        }
+
         if (btnAddItem) {
             btnAddItem.addEventListener('click', () => this.addItemToList());
         }
@@ -111,13 +116,14 @@ const Budgets = {
             document.getElementById('budget-observations').value = b.observations;
             
             this.currentItems = [...b.items];
-            this.populateClientsSelect();
-            document.getElementById('budget-client-select').value = b.clientId;
+            document.getElementById('budget-client-id').value = b.clientId;
+            document.getElementById('budget-client-search').value = b.clientName;
         } else {
             // New mode
             document.getElementById('budget-number').value = this.generateBudgetNumber();
             document.getElementById('budget-date-today').value = new Date().toLocaleDateString();
-            this.populateClientsSelect();
+            document.getElementById('budget-client-id').value = '';
+            document.getElementById('budget-client-search').value = '';
         }
         
         this.renderItemsList();
@@ -130,23 +136,36 @@ const Budgets = {
         return `PR-${count.toString().padStart(5, '0')}`;
     },
 
-    populateClientsSelect() {
-        const select = document.getElementById('budget-client-select');
-        if (!select) return;
-        
-        const currentValue = select.value;
-        select.innerHTML = '<option value="">-- Seleccionar --</option>';
-        
-        const clients = (typeof Clients !== 'undefined' && Clients.list) ? Clients.list : [];
-        
-        clients.forEach(c => {
-            const opt = document.createElement('option');
-            opt.value = c.id;
-            opt.textContent = c.name;
-            select.appendChild(opt);
-        });
+    searchClients(query) {
+        const popover = document.getElementById('client-search-popover');
+        if (!query || query.length < 1) {
+            popover.classList.add('hidden');
+            return;
+        }
 
-        if (currentValue) select.value = currentValue;
+        const clients = (typeof Clients !== 'undefined' && Clients.list) ? Clients.list : [];
+        const matches = clients.filter(c => c.name.toLowerCase().includes(query.toLowerCase()));
+        
+        if (matches.length > 0) {
+            popover.innerHTML = '';
+            matches.forEach(c => {
+                const div = document.createElement('div');
+                div.className = 'search-item';
+                div.innerHTML = `<span>${c.name}</span> <small>Cliente</small>`;
+                div.onclick = () => this.selectClient(c);
+                popover.appendChild(div);
+            });
+            popover.classList.remove('hidden');
+        } else {
+            popover.innerHTML = `<div class="search-item text-muted">No encontrado (se agregará al guardar)</div>`;
+            popover.classList.remove('hidden');
+        }
+    },
+
+    selectClient(client) {
+        document.getElementById('budget-client-id').value = client.id;
+        document.getElementById('budget-client-search').value = client.name;
+        document.getElementById('client-search-popover').classList.add('hidden');
     },
 
     searchProducts(query) {
@@ -185,8 +204,31 @@ const Budgets = {
         document.getElementById('item-config-panel').classList.remove('hidden');
     },
 
-    addItemToList() {
-        if (!this.selectedProduct) return;
+    async addItemToList() {
+        let productToAdd = this.selectedProduct;
+        const typedName = document.getElementById('budget-item-search').value.trim();
+
+        if (!productToAdd && typedName) {
+            // Check if it already exists exactly
+            const existing = Products.list.find(p => p.name.toLowerCase() === typedName.toLowerCase());
+            if (existing) {
+                productToAdd = existing;
+            } else {
+                if (confirm(`El producto "${typedName}" no existe. ¿Quieres agregarlo al catálogo?`)) {
+                    try {
+                        productToAdd = await Products.quickAdd(typedName);
+                        UI.showToast(`Producto "${typedName}" agregado al catálogo.`, 'success');
+                    } catch (e) {
+                        UI.showToast('Error al agregar producto rápido', 'error');
+                        return;
+                    }
+                } else {
+                    return;
+                }
+            }
+        }
+
+        if (!productToAdd) return;
 
         const qty = parseInt(document.getElementById('item-qty').value) || 1;
         const iva = parseFloat(document.getElementById('item-iva').value) || 0;
@@ -264,13 +306,35 @@ const Budgets = {
     },
 
     async saveBudget() {
-        const clientSelect = document.getElementById('budget-client-select');
-        const clientId = clientSelect.value;
-        const clientName = clientSelect.options[clientSelect.selectedIndex]?.text;
-        const budgetId = document.getElementById('edit-budget-id').value;
+        const clientNameInput = document.getElementById('budget-client-search').value.trim();
+        let clientId = document.getElementById('budget-client-id').value;
+        let clientName = clientNameInput;
+
+        if (!clientId && clientNameInput) {
+            // Search if it exists exactly
+            const existing = Clients.list.find(c => c.name.toLowerCase() === clientNameInput.toLowerCase());
+            if (existing) {
+                clientId = existing.id;
+                clientName = existing.name;
+            } else {
+                if (confirm(`El cliente "${clientNameInput}" no existe. ¿Quieres agregarlo a la lista de clientes?`)) {
+                    try {
+                        const newClient = await Clients.quickAdd(clientNameInput);
+                        clientId = newClient.id;
+                        clientName = newClient.name;
+                        UI.showToast(`Cliente registrado con éxito.`, 'success');
+                    } catch (e) {
+                        UI.showToast('Error registrando cliente rápido.', 'error');
+                        return;
+                    }
+                } else {
+                    return;
+                }
+            }
+        }
 
         if (!clientId) {
-            UI.showToast('Por favor, selecciona un cliente.', 'error');
+            UI.showToast('Por favor, selecciona o registra un cliente.', 'error');
             return;
         }
 
