@@ -29,24 +29,31 @@ if (SUPABASE_URL && SUPABASE_URL !== 'TU_SUPABASE_URL_AQUI' && typeof window.sup
 const DB = {
     
     async get(table) {
+        let results = [];
+        const localResults = await this.localGet(table);
+        
         if (supabaseClient) {
-            const { data, error } = await supabaseClient.from(table).select('*');
-            if (error) {
-                console.error(`DB/Supabase: Error in table "${table}":`, error);
-                
-                // If the error confirms a connection issue or table missing, we fallback
-                // but we also keep a record of the original error for diagnostics
-                if (error.code === 'PGRST301' || error.message?.includes('Fetch')) {
-                    return this.localGet(table);
+            try {
+                const { data, error } = await supabaseClient.from(table).select('*');
+                if (!error && data) {
+                    results = data;
+                } else if (error) {
+                    console.warn(`Supabase get error in "${table}", using local only:`, error);
                 }
-                
-                // Add the table name to the error so we know WHICH module failed
-                error.targetTable = table;
-                throw error;
+            } catch (err) {
+                console.error(`Supabase connection error in "${table}":`, err);
             }
-            return data;
         }
-        return this.localGet(table);
+
+        // Merge results: Combine Supabase data with Local data, avoiding duplicates by 'id'
+        const merged = [...results];
+        localResults.forEach(item => {
+            if (!merged.find(m => m.id === item.id)) {
+                merged.push(item);
+            }
+        });
+
+        return merged;
     },
 
     localGet(table) {
