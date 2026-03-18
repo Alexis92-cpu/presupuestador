@@ -360,25 +360,24 @@
                                         
                                         <!-- Area scrollable para los datos y la lista -->
                                         <div class="budget-editor-scroll-area">
-                                            <div class="budget-editor-grid">
-                                                <!-- Columna 1: Info Cliente e General -->
-                                                <div class="budget-editor-column">
-                                                    <div class="grid-2-cols">
-                                                        <div class="input-group">
-                                                            <label>N° Presupuesto</label>
-                                                            <input type="text" id="budget-number" readonly class="input-readonly">
-                                                        </div>
-                                                        <div class="input-group">
-                                                            <label>Estado</label>
-                                                            <select id="budget-status" class="styled-select">
-                                                                <option value="Borrador">Borrador</option>
-                                                                <option value="Enviado">Enviado</option>
-                                                                <option value="Aprobado">Aprobado</option>
-                                                                <option value="Rechazado">Rechazado</option>
-                                                            </select>
-                                                        </div>
+                                            <!-- Layout por renglones (Rows) -->
+                                            <div class="budget-editor-header-layout">
+                                                <!-- Renglón 1: N°, Estado y Cliente -->
+                                                <div class="budget-editor-row">
+                                                    <div class="input-group w-sm">
+                                                        <label>N° Presupuesto</label>
+                                                        <input type="text" id="budget-number" readonly class="input-readonly">
                                                     </div>
-                                                    <div class="input-group">
+                                                    <div class="input-group w-md">
+                                                        <label>Estado</label>
+                                                        <select id="budget-status" class="styled-select">
+                                                            <option value="Borrador">Borrador</option>
+                                                            <option value="Enviado">Enviado</option>
+                                                            <option value="Aprobado">Aprobado</option>
+                                                            <option value="Rechazado">Rechazado</option>
+                                                        </select>
+                                                    </div>
+                                                    <div class="input-group w-grow">
                                                         <label>Cliente</label>
                                                         <div class="input-icon-wrapper">
                                                             <i class='bx bx-user'></i>
@@ -387,58 +386,61 @@
                                                             <input type="hidden" id="budget-client-id">
                                                         </div>
                                                     </div>
-                                                    <div class="grid-2-cols">
-                                                        <div class="input-group">
-                                                            <label>Fecha</label>
-                                                            <input type="text" id="budget-date-today" readonly class="input-readonly">
-                                                        </div>
-                                                        <div class="input-group">
-                                                            <label>Días de Validez</label>
-                                                            <input type="number" id="budget-validity" value="7" min="1">
-                                                        </div>
+                                                </div>
+
+                                                <!-- Renglón 2: Fecha, Validez y Observaciones -->
+                                                <div class="budget-editor-row">
+                                                    <div class="input-group w-sm">
+                                                        <label>Fecha</label>
+                                                        <input type="text" id="budget-date-today" readonly class="input-readonly">
                                                     </div>
-                                                    <div class="input-group">
+                                                    <div class="input-group w-sm">
+                                                        <label>Validez (Días)</label>
+                                                        <input type="number" id="budget-validity" value="7" min="1">
+                                                    </div>
+                                                    <div class="input-group w-grow">
                                                         <label>Observaciones (Subtítulo)</label>
-                                                        <textarea id="budget-observations" rows="2" placeholder="Notas adicionales..."></textarea>
+                                                        <textarea id="budget-observations" rows="1" placeholder="Notas adicionales del presupuesto..." style="height: 42px; min-height: 42px;"></textarea>
                                                     </div>
                                                 </div>
 
-                                                <!-- Columna 2: Selección de Ítems -->
-                                                <div class="budget-editor-column">
-                                                    <div class="input-group">
-                                                        <label>Agregar Producto/Servicio</label>
+                                                <!-- Renglón 3: Buscador de productos -->
+                                                <div class="budget-editor-row">
+                                                    <div class="input-group w-grow">
+                                                        <label>Agregar Producto o Servicio</label>
                                                         <div class="input-icon-wrapper">
                                                             <i class='bx bx-search'></i>
-                                                            <input type="text" id="budget-item-search" placeholder="Escriba para buscar...">
+                                                            <input type="text" id="budget-item-search" placeholder="Escriba para buscar un producto...">
                                                             <div id="search-results-popover" class="search-popover hidden"></div>
                                                         </div>
                                                     </div>
-                                        
-                                                    <div class="item-config-grid hidden" id="item-config-panel">
-                                                        <div class="input-group">
-                                                            <label>Cant.</label>
-                                                            <input type="number" id="item-qty" value="1" min="1">
-                                                        </div>
-                                                        <div class="input-group">
-                                                            <label>IVA Item</label>
-                                                            <select id="item-iva" class="styled-select">
-                                                                <option value="0">0%</option>
-                                                                <option value="10.5">10.5%</option>
-                                                                <option value="21" selected>21%</option>
-                                                            </select>
-                                                        </div>
-                                                        <div class="input-group">
-                                                            <label>Ganancia %</label>
-                                                            <input type="number" id="item-profit" value="20" min="0" max="100">
-                                                        </div>
-                                                        <div class="input-group">
-                                                            <label>Desc. %</label>
-                                                            <input type="number" id="item-discount" value="0" min="0" max="100">
-                                                        </div>
-                                                        <button type="button" id="btn-add-item-to-list" class="btn btn-secondary btn-full" style="grid-column: span 4;">
-                                                            Agregar a la lista
-                                                        </button>
+                                                </div>
+
+                                                <!-- Panel de configuración del producto seleccionado (se muestra al elegir uno) -->
+                                                <div class="item-config-grid hidden" id="item-config-panel">
+                                                    <div class="input-group">
+                                                        <label>Cant.</label>
+                                                        <input type="number" id="item-qty" value="1" min="1">
                                                     </div>
+                                                    <div class="input-group">
+                                                        <label>IVA Item</label>
+                                                        <select id="item-iva" class="styled-select">
+                                                            <option value="0">0%</option>
+                                                            <option value="10.5">10.5%</option>
+                                                            <option value="21" selected>21%</option>
+                                                        </select>
+                                                    </div>
+                                                    <div class="input-group">
+                                                        <label>Ganancia %</label>
+                                                        <input type="number" id="item-profit" value="20" min="0" max="100">
+                                                    </div>
+                                                    <div class="input-group">
+                                                        <label>Desc. %</label>
+                                                        <input type="number" id="item-discount" value="0" min="0" max="100">
+                                                    </div>
+                                                    <button type="button" id="btn-add-item-to-list" class="btn btn-secondary btn-full" style="grid-column: span 4;">
+                                                        Agregar a la lista
+                                                    </button>
                                                 </div>
                                             </div>
 

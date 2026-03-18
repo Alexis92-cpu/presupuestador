@@ -473,6 +473,30 @@
     min-height: 0;
 }
 
+/* Row-based layout for budget editor header */
+.budget-editor-row {
+    display: flex;
+    gap: var(--space-3);
+    flex-wrap: wrap;
+    align-items: flex-end; /* Align inputs correctly */
+    margin-bottom: var(--space-3);
+}
+
+.budget-editor-row .input-group {
+    margin-bottom: 0px; /* Reset for better row spacing */
+}
+
+/* Width utilities */
+.w-sm { flex: 0 0 110px; }
+.w-md { flex: 0 0 145px; }
+.w-grow { flex: 1; min-width: 250px; }
+
+@media (max-width: 600px) {
+    .budget-editor-row .input-group {
+        flex: 1 0 100% !important; /* Force full width on mobile */
+    }
+}
+
 .budget-editor-scroll-area { 
     flex: 1;
     overflow-y: auto;

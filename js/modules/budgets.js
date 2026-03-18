@@ -316,6 +316,7 @@ const Budgets = {
     },
 
     async saveBudget() {
+        const budgetId = document.getElementById('edit-budget-id').value;
         const clientNameInput = document.getElementById('budget-client-search').value.trim();
         let clientId = document.getElementById('budget-client-id').value;
         let clientName = clientNameInput;
