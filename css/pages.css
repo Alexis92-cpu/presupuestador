@@ -234,6 +234,7 @@
     width: 100%;
     display: flex;
     align-items: center;
+    z-index: 50; /* Ensure stacking context for suggestions */
 }
 
 @media (max-width: 600px) {
@@ -482,10 +483,10 @@
 /* Ensure suggestions show up on top */
 .search-popover {
     position: absolute;
-    top: 50px !important; /* Fixed below input height */
+    top: 100% !important; /* Back to 100% of parent */
     left: 0;
     right: 0;
-    background: #1e293b !important; /* Dark solid for better visibility */
+    background: #1e293b !important;
     border: 1px solid var(--accent-primary);
     border-radius: var(--radius-sm);
     z-index: 100000 !important;
