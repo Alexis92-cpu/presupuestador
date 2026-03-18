@@ -232,6 +232,8 @@
 .input-icon-wrapper {
     position: relative !important;
     width: 100%;
+    display: flex;
+    align-items: center;
 }
 
 @media (max-width: 600px) {
@@ -480,24 +482,54 @@
 /* Ensure suggestions show up on top */
 .search-popover {
     position: absolute;
-    top: 100%;
+    top: 50px !important; /* Fixed below input height */
     left: 0;
     right: 0;
-    background: var(--surface-1) !important;
+    background: #1e293b !important; /* Dark solid for better visibility */
     border: 1px solid var(--accent-primary);
     border-radius: var(--radius-sm);
-    z-index: 99999 !important;
-    max-height: 250px;
+    z-index: 100000 !important;
+    max-height: 200px;
     overflow-y: auto;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.8);
-    display: block !important;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.9);
 }
 
 @media (max-width: 768px) {
     .modal {
-        width: 100%;
-        height: 100%;
-        max-height: 100vh;
-        border-radius: 0;
+        width: 95%;
+        height: 95%;
+        max-height: 98vh;
+        margin: 10px auto;
+    }
+    
+    .budget-editor-grid {
+        grid-template-columns: 1fr;
+        gap: var(--space-3);
+    }
+    
+    .item-config-grid {
+        grid-template-columns: 1fr;
+        padding: 10px;
+    }
+    
+    .budget-items-list-container {
+        margin-top: 15px;
+        min-height: 100px;
+    }
+
+    /* Fixed area adjustment for tiny mobile */
+    .fixed-modal-footer-area {
+        padding: 10px;
+    }
+    
+    .fixed-modal-footer-area .modal-footer {
+        flex-direction: row;
+        gap: 10px;
+    }
+    
+    .modal-footer .btn {
+        flex: 1;
+        padding: 12px 5px;
+        font-size: 13px;
     }
 }
