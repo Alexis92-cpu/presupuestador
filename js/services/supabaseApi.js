@@ -118,12 +118,14 @@ const DB = {
 
     async remove(table, id) {
         if (supabaseClient) {
-            const { error } = await supabaseClient.from(table).delete().eq('id', id);
-            if (error) {
-                console.error(`DB: Error removing from ${table}:`, error);
-                throw error;
+            try {
+                const { error } = await supabaseClient.from(table).delete().eq('id', id);
+                if (error) throw error;
+                return true;
+            } catch (error) {
+                console.error(`DB: Error en remove Supabase para "${table}", fallback local:`, error);
+                return this.localRemove(table, id);
             }
-            return true;
         }
         return this.localRemove(table, id);
     },
