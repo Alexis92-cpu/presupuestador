@@ -229,16 +229,9 @@
     border: 1px solid var(--surface-border);
 }
 
-@media (max-width: 900px) {
-    .item-config-grid {
-        grid-template-columns: 1fr 1fr; /* 2 columns on tablets */
-    }
-}
-
 .input-icon-wrapper {
     position: relative !important;
     width: 100%;
-    display: block; /* Avoid flex stretching height */
 }
 
 @media (max-width: 600px) {
@@ -441,15 +434,63 @@
 }
 
 /* Modal sticky footer improvement */
+/* Fixed Bottom Area (Totals + Actions) */
+.fixed-modal-footer-area {
+    flex-shrink: 0;
+    background: var(--bg-main);
+    border-top: 2px solid var(--surface-border);
+    padding-top: 10px;
+    z-index: 50; /* Below popovers but above content */
+}
+
+.fixed-modal-footer-area .budget-totals-footer {
+    margin: 0;
+    border-radius: 0;
+    background: transparent;
+    padding-bottom: 0px;
+}
+
+.fixed-modal-footer-area .modal-footer {
+    border-top: none;
+    padding-top: 10px;
+    padding-bottom: 20px;
+}
+
+/* Modal and layout adjustments */
 .modal {
     max-height: 95vh;
     display: flex !important;
     flex-direction: column;
-    overflow: hidden;
 }
 
-.modal-header {
-    flex-shrink: 0;
+#budget-form-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.budget-editor-scroll-area { 
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--space-4);
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Ensure suggestions show up on top */
+.search-popover {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: var(--surface-1) !important;
+    border: 1px solid var(--accent-primary);
+    border-radius: var(--radius-sm);
+    z-index: 99999 !important;
+    max-height: 250px;
+    overflow-y: auto;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+    display: block !important;
 }
 
 @media (max-width: 768px) {
@@ -459,28 +500,4 @@
         max-height: 100vh;
         border-radius: 0;
     }
-}
-
-#budget-form-main {
-    flex: 1; /* Changed from height: 100% to fill available space correctly */
-    display: flex;
-    flex-direction: column;
-    min-height: 0; /* Critical child overflow management */
-    overflow: hidden;
-}
-
-.budget-editor-scroll-area { 
-    flex: 1;
-    overflow-y: auto;
-    padding: var(--space-3);
-    padding-bottom: 40px;
-    -webkit-overflow-scrolling: touch; /* Smooth scroll for iOS */
-}
-
-.modal-footer {
-    flex-shrink: 0;
-    background: var(--bg-main);
-    z-index: 100 !important;
-    border-top: 1px solid var(--surface-border);
-    padding: 15px var(--space-4);
 }
