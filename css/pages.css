@@ -229,6 +229,12 @@
     border: 1px solid var(--surface-border);
 }
 
+.input-icon-wrapper {
+    position: relative !important;
+    width: 100%;
+    display: block; /* Avoid flex stretching height */
+}
+
 @media (max-width: 600px) {
     .item-config-grid {
         grid-template-columns: 1fr; /* Stack inputs on small mobile */
@@ -241,16 +247,16 @@
 
 .search-popover {
     position: absolute;
-    top: 100%;
+    top: calc(100% + 4px); /* Stick directly below with small gap */
     left: 0;
     right: 0;
     background: var(--surface-1);
     border: 1px solid var(--surface-border);
     border-radius: var(--radius-sm);
-    z-index: 100;
-    max-height: 200px;
+    z-index: 9999 !important; /* Force to topmost layer */
+    max-height: 180px;
     overflow-y: auto;
-    box-shadow: var(--shadow-lg);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
 }
 
 .search-item {
