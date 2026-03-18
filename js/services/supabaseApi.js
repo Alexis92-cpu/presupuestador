@@ -60,12 +60,14 @@ const DB = {
 
     async insert(table, payload) {
         if (supabaseClient) {
-            const { data, error } = await supabaseClient.from(table).insert([payload]).select();
-            if (error) {
-                console.error(`DB: Error inserting into ${table}:`, error);
-                throw error;
+            try {
+                const { data, error } = await supabaseClient.from(table).insert([payload]).select();
+                if (error) throw error;
+                return data[0];
+            } catch (error) {
+                console.error(`DB: Error en insert Supabase para "${table}", fallback local:`, error);
+                return this.localInsert(table, payload);
             }
-            return data[0];
         }
         return this.localInsert(table, payload);
     },
@@ -84,12 +86,14 @@ const DB = {
 
     async update(table, id, payload) {
         if (supabaseClient) {
-            const { data, error } = await supabaseClient.from(table).update(payload).eq('id', id).select();
-            if (error) {
-                console.error(`DB: Error updating ${table}:`, error);
-                throw error;
+            try {
+                const { data, error } = await supabaseClient.from(table).update(payload).eq('id', id).select();
+                if (error) throw error;
+                return data[0];
+            } catch (error) {
+                console.error(`DB: Error en update Supabase para "${table}", fallback local:`, error);
+                return this.localUpdate(table, id, payload);
             }
-            return data[0];
         }
         return this.localUpdate(table, id, payload);
     },

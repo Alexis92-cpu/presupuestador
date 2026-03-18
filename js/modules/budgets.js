@@ -316,6 +316,9 @@ const Budgets = {
     },
 
     async saveBudget() {
+        const btnSave = document.querySelector('#budget-form-main button[type="submit"]');
+        if (btnSave) btnSave.disabled = true;
+
         const budgetId = document.getElementById('edit-budget-id').value;
         const clientNameInput = document.getElementById('budget-client-search').value.trim();
         let clientId = document.getElementById('budget-client-id').value;
@@ -336,9 +339,11 @@ const Budgets = {
                         UI.showToast(`Cliente registrado con éxito.`, 'success');
                     } catch (e) {
                         UI.showToast('Error registrando cliente rápido.', 'error');
+                        if (btnSave) btnSave.disabled = false;
                         return;
                     }
                 } else {
+                    if (btnSave) btnSave.disabled = false;
                     return;
                 }
             }
@@ -346,30 +351,38 @@ const Budgets = {
 
         if (!clientId) {
             UI.showToast('Por favor, selecciona o registra un cliente.', 'error');
+            if (btnSave) btnSave.disabled = false;
             return;
         }
 
         if (this.currentItems.length === 0) {
             UI.showToast('Agrega al menos un producto al presupuesto.', 'error');
+            if (btnSave) btnSave.disabled = false;
             return;
         }
 
-        const btnSave = document.querySelector('#budget-form-main button[type="submit"]');
-        if (btnSave) btnSave.disabled = true;
+        // Recuperar fecha original si es edición, sino usar hoy
+        let originalDate = new Date().toISOString();
+        if (budgetId) {
+            const found = this.list.find(b => b.id == budgetId);
+            if (found && found.date) originalDate = found.date;
+        }
 
         const budgetData = {
-            number: document.getElementById('budget-number').value,
-            date: budgetId ? this.list.find(b => b.id == budgetId).date : new Date().toISOString(),
-            clientId,
-            clientName,
-            status: document.getElementById('budget-status').value,
-            validity: document.getElementById('budget-validity').value,
-            observations: document.getElementById('budget-observations').value,
+            number: document.getElementById('budget-number').value || 'S/N',
+            date: originalDate,
+            clientId: clientId,
+            clientName: clientName,
+            status: document.getElementById('budget-status').value || 'Borrador',
+            validity: document.getElementById('budget-validity').value || 7,
+            observations: document.getElementById('budget-observations').value || '',
             items: [...this.currentItems],
-            totalUsd: this.totals.usd,
-            totalArs: this.totals.ars,
-            rate: Exchange.rate
+            totalUsd: this.totals.usd || 0,
+            totalArs: this.totals.ars || 0,
+            rate: Exchange.rate || 0
         };
+
+        console.log('Intentando guardar presupuesto:', budgetData);
 
         try {
             if (budgetId) {
