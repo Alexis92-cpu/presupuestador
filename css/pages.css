@@ -448,6 +448,10 @@
     overflow: hidden;
 }
 
+.modal-header {
+    flex-shrink: 0;
+}
+
 @media (max-width: 768px) {
     .modal {
         width: 100%;
@@ -458,10 +462,10 @@
 }
 
 #budget-form-main {
+    flex: 1; /* Changed from height: 100% to fill available space correctly */
     display: flex;
     flex-direction: column;
-    height: 100%;
-    min-height: 0; /* Important for flex child overflow */
+    min-height: 0; /* Critical child overflow management */
     overflow: hidden;
 }
 
