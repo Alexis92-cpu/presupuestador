@@ -221,7 +221,7 @@
 
 .item-config-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-columns: repeat(4, 1fr);
     gap: var(--space-3);
     padding: var(--space-3);
     background: var(--surface-2);
@@ -422,4 +422,35 @@
 
 #page-clients::before {
     background-image: url('cctv_background.png');
+}
+
+/* Modal sticky footer improvement */
+.modal {
+    max-height: 95vh;
+    display: flex !important;
+    flex-direction: column;
+}
+
+#budget-form-main {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+}
+
+.budget-editor-scroll-area { 
+    /* This will require an extra div in HTML or styling existing parts as a scrollable container */
+    flex: 1;
+    overflow-y: auto;
+    padding-bottom: 20px;
+}
+
+.modal-footer {
+    position: sticky;
+    bottom: -15px; /* Offset to stay above background gap if any */
+    background: var(--bg-main);
+    z-index: 100 !important;
+    margin-top: auto;
+    border-top: 1px solid var(--surface-border);
+    padding: 15px 0;
 }

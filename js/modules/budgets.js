@@ -238,21 +238,24 @@ const Budgets = {
         const qty = parseInt(document.getElementById('item-qty').value) || 1;
         const iva = parseFloat(document.getElementById('item-iva').value) || 0;
         const profit = parseFloat(document.getElementById('item-profit').value) || 0;
+        const discount = parseFloat(document.getElementById('item-discount').value) || 0;
 
-        // Total price calculation: Cost * (1 + profit%)
-        const costUsd = parseFloat(this.selectedProduct.price_usd) || 0;
-        const profitAmount = costUsd * (profit / 100);
-        const pricePerUnitUsd = costUsd + profitAmount;
+        // Price calculation: Cost * (1 + profit%) * (1 - discount%)
+        const costUsd = parseFloat(productToAdd.price_usd) || 0;
+        const priceAfterProfit = costUsd * (1 + (profit / 100));
+        const finalPricePerUnit = priceAfterProfit * (1 - (discount / 100));
         
         this.currentItems.push({
             id: Date.now(),
-            productId: this.selectedProduct.id,
-            name: this.selectedProduct.name,
+            productId: productToAdd.id,
+            name: productToAdd.name,
             costUsd: costUsd,
-            price_usd: pricePerUnitUsd,
+            profitPercent: profit,
+            discountPercent: discount,
+            price_usd: finalPricePerUnit,
             quantity: qty,
             ivaPercent: iva,
-            subtotalUsd: pricePerUnitUsd * qty
+            subtotalUsd: finalPricePerUnit * qty
         });
 
         this.renderItemsList();
@@ -261,6 +264,7 @@ const Budgets = {
         // Reset item selector
         this.selectedProduct = null;
         document.getElementById('budget-item-search').value = '';
+        document.getElementById('item-discount').value = 0;
         document.getElementById('item-config-panel').classList.add('hidden');
     },
 
@@ -276,6 +280,7 @@ const Budgets = {
                 <td data-label="Descripción">${item.name}</td>
                 <td data-label="Costo (USD)">${UI.formatCurrency(item.costUsd, 'USD')}</td>
                 <td data-label="Venta (USD)">${UI.formatCurrency(item.price_usd, 'USD')}</td>
+                <td data-label="Desc.">${item.discountPercent}%</td>
                 <td data-label="IVA">${item.ivaPercent}%</td>
                 <td data-label="Subtotal (USD)">${UI.formatCurrency(item.subtotalUsd, 'USD')}</td>
                 <td data-label="Acción"><button type="button" class="icon-btn danger" onclick="Budgets.removeItem(${index})"><i class='bx bx-trash'></i></button></td>
@@ -490,6 +495,7 @@ const Budgets = {
                         <th>Descripción</th>
                         <th>Cant.</th>
                         <th>Precio (USD)</th>
+                        <th>Desc.</th>
                         <th>Subtotal (USD)</th>
                     </tr>
                 </thead>
@@ -499,17 +505,18 @@ const Budgets = {
                             <td>${item.name}</td>
                             <td>${item.quantity}</td>
                             <td>${UI.formatCurrency(item.price_usd, 'USD')}</td>
+                            <td>${item.discountPercent > 0 ? `<small style="color:var(--danger)">-${item.discountPercent}%</small>` : ''}</td>
                             <td>${UI.formatCurrency(item.subtotalUsd, 'USD')}</td>
                         </tr>
                     `).join('')}
                 </tbody>
                 <tfoot>
                     <tr>
-                        <td colspan="3" style="text-align: right"><strong>TOTAL USD</strong></td>
+                        <td colspan="4" style="text-align: right"><strong>TOTAL USD</strong></td>
                         <td><strong>${UI.formatCurrency(b.totalUsd, 'USD')}</strong></td>
                     </tr>
                     <tr class="highlight">
-                        <td colspan="3" style="text-align: right"><strong>TOTAL ARS</strong></td>
+                        <td colspan="4" style="text-align: right"><strong>TOTAL ARS</strong></td>
                         <td><strong>${UI.formatCurrency(b.totalArs, 'ARS')}</strong></td>
                     </tr>
                 </tfoot>
