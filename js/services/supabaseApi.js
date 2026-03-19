@@ -149,6 +149,24 @@ const DB = {
                 resolve(list.length < initialLen);
             }, 50);
         });
+    },
+
+    /**
+     * Suscripción en tiempo real a una tabla
+     */
+    subscribe(table, callback) {
+        if (supabaseClient) {
+            return supabaseClient
+                .channel(`realtime_${table}`)
+                .on('postgres_changes', { event: '*', schema: 'public', table: table }, (payload) => {
+                    console.log(`DB: Cambio detectado en "${table}":`, payload);
+                    callback(payload);
+                })
+                .subscribe((status) => {
+                    console.log(`DB: Estado de suscripción para "${table}":`, status);
+                });
+        }
+        return null;
     }
 };
 

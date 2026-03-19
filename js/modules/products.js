@@ -11,6 +11,7 @@ const Products = {
         }
         if (!this.initialized) {
             this.setupListeners();
+            DB.subscribe('products', () => this.loadProducts());
             this.initialized = true;
         }
         this.renderTable();

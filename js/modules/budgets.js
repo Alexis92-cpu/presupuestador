@@ -10,6 +10,8 @@ const Budgets = {
         await this.loadBudgets();
         if (!this.initialized) {
             this.setupListeners();
+            // Escuchar cambios en tiempo real
+            DB.subscribe('budgets', () => this.loadBudgets());
             this.initialized = true;
         }
         this.renderGrid();
