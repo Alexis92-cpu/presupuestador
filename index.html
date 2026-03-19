@@ -128,9 +128,14 @@
                 <section id="page-products" class="page-content">
                     <div class="page-header">
                         <h2>Gestión de Productos</h2>
-                        <button id="btn-add-product" class="btn btn-primary">
-                            <i class='bx bx-plus'></i> Nuevo Producto
-                        </button>
+                        <div class="header-actions">
+                            <button id="btn-delete-bulk" class="btn btn-danger hidden">
+                                <i class='bx bx-trash'></i> Eliminar (<span id="selected-count">0</span>)
+                            </button>
+                            <button id="btn-add-product" class="btn btn-primary">
+                                <i class='bx bx-plus'></i> Nuevo Producto
+                            </button>
+                        </div>
                     </div>
 
                     <!-- Products Table / List -->
@@ -145,6 +150,7 @@
                             <table id="products-table" class="data-table">
                                 <thead>
                                     <tr>
+                                        <th style="width: 40px;"><input type="checkbox" id="select-all-products"></th>
                                         <th>Nombre</th>
                                         <th>Categoría</th>
                                         <th>Precio (USD)</th>

@@ -113,6 +113,17 @@ const Products = {
         document.addEventListener('tasaCambioActualizada', (e) => {
             this.renderTable();
         });
+
+        // Bulk Actions
+        const selectAllCb = document.getElementById('select-all-products');
+        if (selectAllCb) {
+            selectAllCb.addEventListener('change', (e) => this.toggleSelectAll(e.target.checked));
+        }
+
+        const btnBulkDelete = document.getElementById('btn-delete-bulk');
+        if (btnBulkDelete) {
+            btnBulkDelete.addEventListener('click', () => this.bulkDelete());
+        }
     },
 
     openModalForAdd() {
@@ -211,12 +222,74 @@ const Products = {
         this.renderTable();
     },
 
+    toggleSelectAll(checked) {
+        const checkboxes = document.querySelectorAll('.product-checkbox');
+        this.selectedIds = checked ? this.list.map(p => p.id) : [];
+        checkboxes.forEach(cb => cb.checked = checked);
+        this.updateBulkDeleteButton();
+    },
+
+    toggleSelect(id, checked) {
+        if (checked) {
+            if (!this.selectedIds.includes(id)) this.selectedIds.push(id);
+        } else {
+            this.selectedIds = this.selectedIds.filter(sid => sid != id);
+        }
+        this.updateBulkDeleteButton();
+    },
+
+    updateBulkDeleteButton() {
+        const btn = document.getElementById('btn-delete-bulk');
+        const countSpan = document.getElementById('selected-count');
+        if (btn && countSpan) {
+            if (this.selectedIds.length > 0) {
+                btn.classList.remove('hidden');
+                countSpan.textContent = this.selectedIds.length;
+            } else {
+                btn.classList.add('hidden');
+            }
+        }
+    },
+
+    async bulkDelete() {
+        if (!this.selectedIds.length) return;
+        if (!confirm(`¿Estás seguro de eliminar ${this.selectedIds.length} productos?`)) return;
+
+        const btn = document.getElementById('btn-delete-bulk');
+        btn.disabled = true;
+        btn.innerHTML = 'Eliminando...';
+
+        try {
+            let deletedCount = 0;
+            for (const id of this.selectedIds) {
+                await DB.remove('products', id);
+                deletedCount++;
+            }
+            UI.showToast(`${deletedCount} productos eliminados.`, 'info');
+            this.selectedIds = [];
+            await this.loadProducts();
+            this.updateBulkDeleteButton();
+        } catch (error) {
+            console.error("Error in bulk delete:", error);
+            UI.showToast('Error en el borrado masivo.', 'error');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = `<i class='bx bx-trash'></i> Eliminar (<span id="selected-count">0</span>)`;
+        }
+    },
+
+    selectedIds: [],
+
     renderTable() {
         const tbody = document.getElementById('products-list');
         if (!tbody) return;
 
+        // Reset "Select All" if list is empty or re-rendered
+        const selectAllCb = document.getElementById('select-all-products');
+        if (selectAllCb) selectAllCb.checked = false;
+
         if (this.list.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted">No hay productos disponibles</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted">No hay productos disponibles</td></tr>`;
             return;
         }
 
@@ -224,8 +297,10 @@ const Products = {
         this.list.forEach(p => {
             const tr = document.createElement('tr');
             const priceArs = p.price_usd * Exchange.rate;
+            const isSelected = this.selectedIds.includes(p.id);
             
             tr.innerHTML = `
+                <td><input type="checkbox" class="product-checkbox" data-id="${p.id}" ${isSelected ? 'checked' : ''}></td>
                 <td data-label="Nombre"><strong>${p.name}</strong></td>
                 <td data-label="Categoría"><span class="badge border text-muted">${p.category}</span></td>
                 <td data-label="Precio (USD)" class="price-usd">${UI.formatCurrency(p.price_usd, 'USD')}</td>
@@ -240,6 +315,11 @@ const Products = {
 
         tbody.innerHTML = '';
         tbody.appendChild(fragment);
+
+        // Listeners for checkboxes
+        tbody.querySelectorAll('.product-checkbox').forEach(cb => {
+            cb.onchange = (e) => this.toggleSelect(e.target.dataset.id, e.target.checked);
+        });
 
         tbody.querySelectorAll('.edit-btn').forEach(btn => {
             btn.onclick = () => this.openModalForEdit(btn.dataset.id);

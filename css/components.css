@@ -19,6 +19,24 @@
     background: var(--surface-border);
 }
 
+.btn-danger {
+    background: var(--danger);
+    color: white;
+}
+
+.btn-danger:hover {
+    background: #dc2626;
+}
+
+.header-actions {
+    display: flex;
+    gap: var(--space-2);
+}
+
+.hidden {
+    display: none !important;
+}
+
 .btn-primary {
     background: var(--accent-primary);
     box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
