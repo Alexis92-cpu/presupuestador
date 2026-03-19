@@ -429,11 +429,11 @@
 }
 /* Section Background Images */
 #page-budgets::before, #page-products::before, #page-price-lists::before, #page-users::before {
-    background-image: url('networking_background.png');
+    background-image: url('../networking_background.png');
 }
 
 #page-clients::before {
-    background-image: url('cctv_background.png');
+    background-image: url('../cctv_background.png');
 }
 
 /* Modal sticky footer improvement */

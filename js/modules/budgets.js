@@ -121,8 +121,8 @@ const Budgets = {
             document.getElementById('budget-observations').value = b.observations;
             
             this.currentItems = [...b.items];
-            document.getElementById('budget-client-id').value = b.clientId;
-            document.getElementById('budget-client-search').value = b.clientName;
+            document.getElementById('budget-client-id').value = b.client_id || b.clientId || '';
+            document.getElementById('budget-client-search').value = b.client_name || b.clientName || '';
         } else {
             // New mode
             document.getElementById('budget-number').value = this.generateBudgetNumber();
@@ -371,14 +371,14 @@ const Budgets = {
         const budgetData = {
             number: document.getElementById('budget-number').value || 'S/N',
             date: originalDate,
-            clientId: clientId,
-            clientName: clientName,
+            client_id: clientId,
+            client_name: clientName,
             status: document.getElementById('budget-status').value || 'Borrador',
             validity: document.getElementById('budget-validity').value || 7,
             observations: document.getElementById('budget-observations').value || '',
             items: [...this.currentItems],
-            totalUsd: this.totals.usd || 0,
-            totalArs: this.totals.ars || 0,
+            total_usd: this.totals.usd || 0,
+            total_ars: this.totals.ars || 0,
             rate: Exchange.rate || 0
         };
 
@@ -414,7 +414,7 @@ const Budgets = {
         if (query) {
             const q = query.toLowerCase();
             filtered = filtered.filter(b => 
-                (b.clientName || '').toLowerCase().includes(q) || 
+                (b.client_name || b.clientName || '').toLowerCase().includes(q) || 
                 (b.number || '').toLowerCase().includes(q)
             );
         }
@@ -441,10 +441,10 @@ const Budgets = {
                 </div>
                 <div class="budget-card-body">
                     <span class="budget-date">${new Date(b.date).toLocaleDateString()}</span>
-                    <h3 class="client-name">${b.clientName}</h3>
+                    <h3 class="client-name">${b.client_name || b.clientName}</h3>
                     <div class="budget-totals">
-                        <div class="total-main">${UI.formatCurrency(b.totalArs, 'ARS')}</div>
-                        <div class="total-sub">${UI.formatCurrency(b.totalUsd, 'USD')}</div>
+                        <div class="total-main">${UI.formatCurrency(b.total_ars || b.totalArs, 'ARS')}</div>
+                        <div class="total-sub">${UI.formatCurrency(b.total_usd || b.totalUsd, 'USD')}</div>
                     </div>
                 </div>
                 <div class="budget-card-footer">
@@ -499,7 +499,7 @@ const Budgets = {
             </div>
             
             <div class="budget-pdf-client">
-                <p><strong>Cliente:</strong> ${b.clientName}</p>
+                <p><strong>Cliente:</strong> ${b.client_name || b.clientName}</p>
                 <p><strong>Validez:</strong> ${b.validity} días</p>
             </div>
 
@@ -527,11 +527,11 @@ const Budgets = {
                 <tfoot>
                     <tr>
                         <td colspan="4" style="text-align: right"><strong>TOTAL USD</strong></td>
-                        <td><strong>${UI.formatCurrency(b.totalUsd, 'USD')}</strong></td>
+                        <td><strong>${UI.formatCurrency(b.total_usd || b.totalUsd, 'USD')}</strong></td>
                     </tr>
                     <tr class="highlight">
                         <td colspan="4" style="text-align: right"><strong>TOTAL ARS</strong></td>
-                        <td><strong>${UI.formatCurrency(b.totalArs, 'ARS')}</strong></td>
+                        <td><strong>${UI.formatCurrency(b.total_ars || b.totalArs, 'ARS')}</strong></td>
                     </tr>
                 </tfoot>
             </table>
