@@ -93,21 +93,21 @@ const DB = {
     },
 
     async update(table, id, payload) {
+        let result = null;
         if (supabaseClient) {
             try {
                 const { data, error } = await supabaseClient.from(table).update(payload).eq('id', id).select();
-                if (error) throw error;
-                
-                if (!data || data.length === 0) {
-                    return { id, ...payload };
+                if (!error && data && data.length > 0) {
+                    result = data[0];
                 }
-                return data[0];
             } catch (error) {
-                console.error(`DB: Error en update Supabase ("${table}"):`, error.message || error);
-                return this.localUpdate(table, id, payload);
+                console.error(`DB: Error en update Supabase ("${table}"):`, error);
             }
         }
-        return this.localUpdate(table, id, payload);
+
+        // Siempre intentamos actualizar local también para mantener consistencia si era un item local
+        const localResult = await this.localUpdate(table, id, payload);
+        return result || localResult;
     },
 
     localUpdate(table, id, payload) {
@@ -122,26 +122,31 @@ const DB = {
     },
 
     async remove(table, id) {
+        let success = false;
         if (supabaseClient) {
             try {
                 const { error } = await supabaseClient.from(table).delete().eq('id', id);
-                if (error) throw error;
-                return true;
+                if (!error) success = true;
+                else console.warn("Supabase: No se pudo borrar de la nube (puede que sea local):", error.message);
             } catch (error) {
-                console.error(`DB: Error en remove Supabase ("${table}"):`, error.message || error);
-                return this.localRemove(table, id);
+                console.error(`DB: Error en remove Supabase ("${table}"):`, error);
             }
         }
-        return this.localRemove(table, id);
+
+        // IMPORTANTE: Siempre intentamos borrar de LocalStorage también.
+        // Esto garantiza que si el item era "viejo/local", desaparezca de la vista.
+        const localSuccess = await this.localRemove(table, id);
+        return success || localSuccess;
     },
 
     localRemove(table, id) {
         return new Promise((resolve) => {
             setTimeout(() => {
                 let list = JSON.parse(localStorage.getItem(`netpoint_${table}`) || '[]');
+                const initialLen = list.length;
                 list = list.filter(item => item.id != id);
                 localStorage.setItem(`netpoint_${table}`, JSON.stringify(list));
-                resolve(true);
+                resolve(list.length < initialLen);
             }, 50);
         });
     }
