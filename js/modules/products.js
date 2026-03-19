@@ -6,9 +6,6 @@ const Products = {
     initialized: false,
     async init() {
         await this.loadProducts();
-        if (this.list.length === 0) {
-            await this.seedData();
-        }
         if (!this.initialized) {
             this.setupListeners();
             DB.subscribe('products', () => this.loadProducts());
